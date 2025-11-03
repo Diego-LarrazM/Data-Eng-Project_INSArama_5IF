@@ -1,1 +1,2 @@
 pymongo
+bs4

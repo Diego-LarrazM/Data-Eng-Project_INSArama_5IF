@@ -3,5 +3,5 @@
 **/plugins/*
 **/venv
 **/.venv
-
+**/__pychache__
 
