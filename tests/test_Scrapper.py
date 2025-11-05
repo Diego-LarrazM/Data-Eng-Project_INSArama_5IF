@@ -6,7 +6,7 @@ sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
 from DockerETL_Images.Ingestion.Scrapper.scripts.metacritic_scrapper import *
 
-scr = MetacriticScrapper(MetacriticScrapper.Category.GAMES)
+scr = MetacriticScrapper(MetacriticCategory.GAMES)
 print("Max pages:", scr.MAX_PAGES)
 
 # for i in scr:   # for testing end
