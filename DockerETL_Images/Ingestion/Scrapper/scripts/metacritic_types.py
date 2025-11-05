@@ -1,5 +1,6 @@
 from bs4 import BeautifulSoup
 from enum import StrEnum
+import textwrap
 
 class MetacriticCategory(StrEnum):
     GAMES = "Games"
@@ -11,8 +12,8 @@ class MetacriticReview:
     company: str | None
     quote: str
     rating: int
-    date : str # to chagne to date type
-    url: str | None
+    post_date : str | None # !!! to chagne to date type !!! We're going to need to get date from review_src_url for old critics :/
+    full_review_src_url: str | None # If is a critic, full review was posted on their page
     spoiler: bool
     isCritic: bool
 
@@ -20,14 +21,40 @@ class MetacriticReview:
         self.author = data.get("author", "")
         self.company = data.get("publicationName", None)
         if isCritic and self.author == "": 
-            self.author = data.get("publicationSlug", "") # !!!!!!!! We're going to need to get author from url for games :/
+            self.author = data.get("publicationSlug", "") # !!! We're going to need to get author from review_src_url for games :/
         self.quote = data.get("quote", "")
         self.rating = data.get("score", None)
-        self.date = data.get("date", "")
-        self.url = data.get("url", None)
+        self.post_date = data.get("date", "")
+        self.full_review_src_url = data.get("url", None)
         self.spoiler = data.get("spoiler", False) # if not present assume no spoiler, specially for critic reviews
         self.isCritic = isCritic
     
+    def __repr__(self):
+        wrapped_quote = textwrap.fill(
+            self.quote,
+            width=80,
+            subsequent_indent=" " * 10   # matches 4-space indent
+        )
+        return "MetacriticReview(\n"+\
+               f"    author={self.author}\n"+\
+               f"    company={self.company}\n"+\
+               f"    isCritic={self.isCritic}\n"+\
+               f"    full_review_src_url={self.full_review_src_url}\n"+\
+               f"    spoiler={self.spoiler}\n"+\
+               f"    post_date={self.post_date}\n"+\
+               f"    rating={self.rating}\n"+\
+               f"    quote=\"{wrapped_quote}\"\n"+\
+               ")"
+               
+    def __str__(self):
+        wrapped_quote = textwrap.fill(
+            self.quote,
+            width=80
+        )
+        return f"\n"+\
+               f"\"{wrapped_quote}\"\n"+\
+               f" - by {self.author}"+ (f" | {self.company}" if self.company else "") + f" [{self.post_date}]"
+
 class MediaInfo:
     element_pagination_title: str # title used in url to obtain page/critics (ex: the-legend-of-zelda)
     main_page: BeautifulSoup

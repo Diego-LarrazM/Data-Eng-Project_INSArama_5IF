@@ -27,7 +27,7 @@ class MetacriticScrapper:
                       "u-inline-block"
     
     class ReviewAPIResponseHandler:
-        def __init__(self, base_link: str, isCritics: bool = True, response_limit: int = 100):
+        def __init__(self, base_link: str, isCritics: bool = True, response_limit: int = 20):
             self.base_link = base_link
             self.totalReviews = int(self._requestReviewAPI(0)["totalResults"])
             self.isCritics = isCritics
@@ -35,7 +35,7 @@ class MetacriticScrapper:
 
         def _requestReviewAPI(self, offset: int) -> dict:
             api_link = f"https://backend.metacritic.com/reviews/metacritic/{self.base_link}/web?offset={offset}"
-            response = requests.get(api_link, headers = self.USER_AGENT)
+            response = requests.get(api_link, headers = MetacriticScrapper.USER_AGENT)
             return response.json()["data"]
         
         def getTotalReviews(self) -> int:
@@ -132,8 +132,13 @@ class MetacriticScrapper:
 
         critic_reviews = {}
         user_reviews = {}
+        
+        criticsReviewHandler = self.ReviewAPIResponseHandler(critics_reviews_base_link, isCritics=True)
+        userReviewHandler = self.ReviewAPIResponseHandler(user_reviews_base_link, isCritics=False)
 
-        return main_page_link # for testing
+        rev = criticsReviewHandler.getReviews()
+
+        return rev # for testing
         
         if review_p_inf[1]: # if contains sections 
             critics_reviews_base_link += f"{review_p_inf[1]}/"
@@ -142,11 +147,11 @@ class MetacriticScrapper:
             #### Get sections and per each get for each offset until total items or max limit append reviews.
             #### Use self.pagination_info["sections_cssTag"] to get sections container (actual cssTag to be defined!!!!!)
             #### ...
-            #for section in sections: 
-            #   criticsReviewHandler = self.ReviewAPIResponseHandler(critics_reviews__base_link+f"{section}/web", isCritics=True)
-            #   userReviewHandler = self.ReviewAPIResponseHandler(user_reviews__base_link+f"{section}/web", isCritics=False)
-            #   critic_reviews[section] = criticsReviewHandler.getReviews()
-            #   user_reviews[section] = userReviewHandler.getReviews()
+            for section in sections: 
+               criticsReviewHandler = self.ReviewAPIResponseHandler(critics_reviews__base_link+f"{section}/web", isCritics=True)
+               userReviewHandler = self.ReviewAPIResponseHandler(user_reviews__base_link+f"{section}/web", isCritics=False)
+               critic_reviews[section] = criticsReviewHandler.getReviews()
+               user_reviews[section] = userReviewHandler.getReviews()
         else:
             # get total items and per each offset until total items or max limit append reviews.
             criticsReviewHandler = self.ReviewAPIResponseHandler(critics_reviews_base_link, isCritics=True)
