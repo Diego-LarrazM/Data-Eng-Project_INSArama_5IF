@@ -2,6 +2,7 @@ import pendulum
 import os
 from dotenv import load_dotenv
 from datetime import timedelta
+from airflow.utils.dates import days_ago
 
 load_dotenv("/opt/airflow/.env")
 
@@ -12,7 +13,7 @@ START_DATE = pendulum.datetime(2025,1,1,tz='UTC')
 
 with DAG(
     dag_id="Ingestion_DAG",
-    start_date=START_DATE,
+    start_date=START_DATE, # days_ago(0) to change and test !!!
     schedule=None,
     catchup=False,
     max_active_tasks=1,
@@ -23,6 +24,7 @@ with DAG(
     tags=["ingestion"]
 ) as dag:
     
+    #with TaskGroup(group_id='Ingestion') as Ingestion_Group: !!!
     run_scrapper = DockerOperator(
         task_id="run_scrapper",
         container_name="IngestionScrapper",
