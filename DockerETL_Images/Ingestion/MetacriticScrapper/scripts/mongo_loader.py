@@ -1,9 +1,20 @@
 from pymongo import MongoClient #, AsyncMongoClient
+from pymongo.client_session import ClientSession
 from models.execution import *
 import ast
 import os
 
 class MongoLoader:
+
+    def with_transaction(operation):
+        def wrapper(self, *args,**kwargs):
+            with self.client.start_session() as session:
+                try:
+                    with session.start_transaction():
+                        return operation(self,*args, session=session,**kwargs)
+                except Exception as e:
+                    print(f"Transaction failed: {e}")
+                    return FAILURE
     
     def __init__(self, mongo_conn_url:str, database:str):
         # Set up MongoDB connection
@@ -11,7 +22,8 @@ class MongoLoader:
         self.db = self.client[database]
 
     @safe_execute
-    def load_from(self, file_path: str, collection_name: str) -> ExitCode:
+    @with_transaction
+    def load_from(self, file_path: str, collection_name: str, session: ClientSession=None) -> ExitCode:
         if not os.path.exists(file_path):
             raise Exception(f"File {file_path} does not exist.")
         
@@ -19,20 +31,22 @@ class MongoLoader:
         with open(file_path, "r", encoding="utf-8") as file:
             data = file.readlines()
             documents = [ast.literal_eval(line) for line in data]
-            collection.insert_many(documents)
+            collection.insert_many(documents, session=session)
         return SUCCESS
     
     @safe_execute
-    def load_single(self, data: dict, collection_name: str) -> ExitCode:
+    @with_transaction
+    def load_single(self, data: dict, collection_name: str, session: ClientSession=None) -> ExitCode:
         if not data:
             raise Exception(f"Data to load not provided.")
-        self.db[collection_name].insert_one(data)
+        self.db[collection_name].insert_one(data, session=session)
         return SUCCESS
     
     @safe_execute
-    def load_multiple(self, data: list[dict], collection_name: str) -> ExitCode:
+    @with_transaction
+    def load_multiple(self, data: list[dict], collection_name: str, session: ClientSession=None) -> ExitCode:
         if not data:
             raise Exception(f"Data to load not provided.")
-        self.db[collection_name].insert_many(data)
+        self.db[collection_name].insert_many(data, session=session)
         return SUCCESS
         
