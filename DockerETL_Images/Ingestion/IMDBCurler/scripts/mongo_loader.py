@@ -6,15 +6,14 @@ import os
 
 class MongoLoader:
 
+    @staticmethod
     def with_transaction(operation):
-        def wrapper(self, *args,**kwargs):
+        def wrapper(self, *args,**kwargs) -> ExitCode:
             with self.client.start_session() as session:
-                try:
-                    with session.start_transaction():
-                        return operation(self,*args, session=session,**kwargs)
-                except Exception as e:
-                    print(f"Transaction failed: {e}")
-                    return FAILURE
+                with session.start_transaction(): # auto abort/commit
+                    return operation(self,*args, session=session,**kwargs)
+        return wrapper
+                
     
     def __init__(self, mongo_conn_url:str, database:str):
         # Set up MongoDB connection
