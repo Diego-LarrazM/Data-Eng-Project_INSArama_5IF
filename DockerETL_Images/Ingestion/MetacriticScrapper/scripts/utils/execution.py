@@ -9,9 +9,9 @@ FAILURE: ExitCode = True   # 1 → failure
 
 def safe_execute(operation):
     @wraps(operation)
-    def wrapper() -> ExitCode:
+    def wrapper(*args, **kwargs) -> ExitCode:
         try:
-            return operation()
+            return operation(*args, **kwargs)
         except Exception as e:
             print(f"An error occurred during execution: {e}")
             return FAILURE

@@ -2,7 +2,8 @@ import requests
 import re
 
 from metacritic_api_handler import MetacriticReviewAPIHandler
-from models import MediaInfoPages, MetacriticCategory
+from models import MediaInfoPages
+from utils import MetacriticCategory
 from bs4 import BeautifulSoup
     
 class MetacriticScrapper:
