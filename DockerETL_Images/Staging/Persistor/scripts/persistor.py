@@ -19,7 +19,6 @@ class Persistor:
             session.close()
 
     def __init__(self, mongo_conn_url: str, r_database: str, sqlw_conn_url: str):
-
         # Set up MongoDB connection
         try:
             self.client = MongoClient(host = mongo_conn_url) #or AsyncMongoClient for async operations

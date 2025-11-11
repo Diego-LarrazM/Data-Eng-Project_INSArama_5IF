@@ -2,7 +2,7 @@ import os
 from urllib.parse import quote_plus
 
 from persistor import Persistor
-from models.base import ModelsBase
+from models import *
 # from models.class import ORMClass for each
 
 

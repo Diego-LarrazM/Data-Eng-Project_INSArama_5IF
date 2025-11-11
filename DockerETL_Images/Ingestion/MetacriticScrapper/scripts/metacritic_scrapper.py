@@ -1,7 +1,9 @@
 import requests
 import re
 
-from .metacritic_types import *
+from metacritic_api_handler import MetacriticReviewAPIHandler
+from models import MediaInfoPages, MetacriticCategory
+from bs4 import BeautifulSoup
     
 class MetacriticScrapper:
     
@@ -25,38 +27,14 @@ class MetacriticScrapper:
         PLATFORM_LI = "c-gameDetails_listItem "+\
                       "g-color-gray70 "+\
                       "u-inline-block"
-    
-    class ReviewAPIResponseHandler:
-        def __init__(self, base_link: str, isCritics: bool = True, response_limit: int = 20):
-            self.base_link = base_link
-            self.totalReviews = int(self._requestReviewAPI(0)["totalResults"])
-            self.isCritics = isCritics
-            self.response_limit = response_limit
 
-        def _requestReviewAPI(self, offset: int) -> dict:
-            api_link = f"https://backend.metacritic.com/reviews/metacritic/{self.base_link}/web?offset={offset}"
-            response = requests.get(api_link, headers = MetacriticScrapper.USER_AGENT)
-            return response.json()["data"]
+    def __init__(self, category: MetacriticCategory, user_agent: dict[str:str]):
+        if "User-agent" not in user_agent:
+                raise f"User-agent not defined: {user_agent}"
         
-        def getTotalReviews(self) -> int:
-            return self.totalReviews
-        
-        def getReviewBatch(self, offset: int) -> list[MetacriticReview]:
-            data = self._requestReviewAPI(offset)
-            return [MetacriticReview(item, self.isCritics) for item in data["items"]]
-        
-        def getReviews(self) -> list[MetacriticReview]:
-            reviews = []
-            for offset in range(0, min(self.totalReviews, self.response_limit), 10):
-                reviews.extend(self.getReviewBatch(offset))
-            return reviews
-
-
-    USER_AGENT = {"User-agent": "Mozilla/5.0"}
-
-    def __init__(self, category: MetacriticCategory):
         self.page_num = 1  # 581 for testing end
         self.current_elmt_num = 1
+        self.USER_AGENT = user_agent
         
         # Pagination details to obtain browse page, review APIs and platform/season info container tag
         if category == MetacriticCategory.GAMES:
@@ -82,7 +60,7 @@ class MetacriticScrapper:
     def __iter__(self):
         return self
 
-    def __next__(self) -> MediaInfo:
+    def __next__(self) -> MediaInfoPages:
         # if all elements viewed, load next page
         if self.current_elmt_num > self.max_elements:
             print("Loading next page...")
@@ -120,7 +98,7 @@ class MetacriticScrapper:
                     self.browse_element_list.append(element_pagination_title)
         self.max_elements = len(self.browse_element_list)
 
-    def _extractMediaInfoFromCurrent(self) -> MediaInfo:
+    def _extractMediaInfoFromCurrent(self) -> MediaInfoPages:
         current_element_title = self.browse_element_list[self.current_elmt_num - 1]
         self.current_elmt_num += 1 # This element already taken
 
@@ -133,8 +111,8 @@ class MetacriticScrapper:
         critic_reviews = {}
         user_reviews = {}
         
-        criticsReviewHandler = self.ReviewAPIResponseHandler(critics_reviews_base_link, isCritics=True)
-        userReviewHandler = self.ReviewAPIResponseHandler(user_reviews_base_link, isCritics=False)
+        criticsReviewHandler = MetacriticReviewAPIHandler(critics_reviews_base_link, user_agent=self.USER_AGENT, isCritics=True)
+        userReviewHandler = MetacriticReviewAPIHandler(user_reviews_base_link, user_agent=self.USER_AGENT, isCritics=False)
 
         rev = criticsReviewHandler.getReviews()
 
@@ -148,19 +126,19 @@ class MetacriticScrapper:
             #### Use self.pagination_info["sections_cssTag"] to get sections container (actual cssTag to be defined!!!!!)
             #### ...
             for section in sections: 
-               criticsReviewHandler = self.ReviewAPIResponseHandler(critics_reviews__base_link+f"{section}/web", isCritics=True)
-               userReviewHandler = self.ReviewAPIResponseHandler(user_reviews__base_link+f"{section}/web", isCritics=False)
+               criticsReviewHandler = MetacriticReviewAPIHandler(critics_reviews__base_link+f"{section}/web", user_agent=self.USER_AGENT, isCritics=True)
+               userReviewHandler = MetacriticReviewAPIHandler(user_reviews__base_link+f"{section}/web", user_agent=self.USER_AGENT, isCritics=False)
                critic_reviews[section] = criticsReviewHandler.getReviews()
                user_reviews[section] = userReviewHandler.getReviews()
         else:
             # get total items and per each offset until total items or max limit append reviews.
-            criticsReviewHandler = self.ReviewAPIResponseHandler(critics_reviews_base_link, isCritics=True)
-            userReviewHandler = self.ReviewAPIResponseHandler(user_reviews_base_link, isCritics=False)
+            criticsReviewHandler = MetacriticReviewAPIHandler(critics_reviews_base_link, user_agent=self.USER_AGENT, isCritics=True)
+            userReviewHandler = MetacriticReviewAPIHandler(user_reviews_base_link, user_agent=self.USER_AGENT, isCritics=False)
 
             critic_reviews["_default"] = criticsReviewHandler.getReviews()
             user_reviews["_default"] = userReviewHandler.getReviews()
         
-        return MediaInfo(
+        return MediaInfoPages(
             element_pagination_title=current_element_title,
             main_page = self._loadPageFromUrl(main_page_link),
             critic_reviews = critic_reviews,

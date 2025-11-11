@@ -1,12 +1,5 @@
-from bs4 import BeautifulSoup
-from enum import StrEnum
 import textwrap
 
-class MetacriticCategory(StrEnum):
-    GAMES = "Games"
-    MOVIES = "Movies"
-    TV_SHOWS = "TV Shows"
-    
 class MetacriticReview:
     author: str
     company: str | None
@@ -55,9 +48,5 @@ class MetacriticReview:
                f"\"{wrapped_quote}\"\n"+\
                f" - by {self.author}"+ (f" | {self.company}" if self.company else "") + f" [{self.post_date}]"
 
-class MediaInfo:
-    element_pagination_title: str # title used in url to obtain page/critics (ex: the-legend-of-zelda)
-    main_page: BeautifulSoup
-    critic_reviews: dict[str,list[MetacriticReview]] # platform/season: reviews list
-    user_reviews: dict[str,list[MetacriticReview]]
+
 
