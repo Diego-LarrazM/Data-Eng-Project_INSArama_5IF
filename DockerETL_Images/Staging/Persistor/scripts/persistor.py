@@ -13,9 +13,9 @@ class Persistor:
         try:
             yield session
             session.commit()
-        except:
+        except Exception as e:
             session.rollback()
-            raise
+            raise Exception(f"Session failure - {e}") from e # to be catched by safe execution
         finally:
             session.close()
 
@@ -30,17 +30,20 @@ class Persistor:
         self.session_factory = sessionmaker(bind=self.engine)
     
     @safe_execute
-    def create_tables(self, base: DeclarativeMeta):
+    def create_tables(self, base: DeclarativeMeta) -> ExitCode:
         base.metadata.create_all(self.engine)
+        return SUCCESS
 
     @safe_execute
-    def persist(self, obj: ModelType):
+    def persist(self, obj: ModelType) -> ExitCode:
         with self.session_scope() as session:
             session.add(obj)
+        return SUCCESS
     
     @safe_execute
-    def persist_all(self, obj_list: list[ModelType]):
+    def persist_all(self, obj_list: list[ModelType]) -> ExitCode:
         with self.session_scope() as session:
             session.add_all(obj_list)
+        return SUCCESS
     
     
