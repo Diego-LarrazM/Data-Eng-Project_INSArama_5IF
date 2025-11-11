@@ -10,5 +10,5 @@ RUN chmod +x /app/scripts/start.sh
 
 CMD ["sh", "./scripts/start.sh"]
 
-# docker build -t ingestion/scrapper -f DockerETL_Images\Ingestion\Scrapper\Dockerfile DockerETL_Images\Ingestion\Scrapper
-# docker run --name Ingestion_Scrapper --network IngestionNet -v ./data:/app/data --rm --env-file .env ingestion/scrapper
+# docker build -t staging/wrangler -f DockerETL_Images\Staging\TransformerWrangler\Dockerfile DockerETL_Images\Staging\TransformerWrangler
+# docker run --name Staging_Wrangler --network IngestionNet -v ./data:/app/data --rm --env-file .env staging/wrangler

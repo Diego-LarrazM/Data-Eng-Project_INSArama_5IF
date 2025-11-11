@@ -12,5 +12,5 @@ RUN chmod +x /app/scripts/start.sh
 
 CMD ["sh", "./scripts/start.sh"]
 
-# docker build -t ingestion/scrapper -f DockerETL_Images\Ingestion\Scrapper\Dockerfile DockerETL_Images\Ingestion\Scrapper
-# docker run --name Ingestion_Scrapper --network IngestionNet -v ./data:/app/data --rm --env-file .env ingestion/scrapper
+# docker build -t ingestion/metacritic_scrapper -f DockerETL_Images/Ingestion/MetacriticScrapper/Dockerfile DockerETL_Images/Ingestion/MetacriticScrapper
+# docker run --name Ingestion_Scrapper --network IngestionNet -v ./data:/app/data --rm --env-file .env ingestion/metacritic_scrapper

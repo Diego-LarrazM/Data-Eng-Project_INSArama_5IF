@@ -27,8 +27,8 @@ with DAG(
     #with TaskGroup(group_id='Ingestion') as Ingestion_Group: !!!
     run_scrapper = DockerOperator(
         task_id="run_scrapper",
-        container_name="IngestionScrapper",
-        image="ingestion/scrapper:latest",
+        container_name="MetaCriticScrapper",
+        image="ingestion/metacritic_scrapper:latest",
         api_version='auto',
         auto_remove=True, # To make it dispappear once it finishes
         command="sh -c '/app/scripts/start.sh'",
