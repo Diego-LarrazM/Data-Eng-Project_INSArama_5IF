@@ -96,11 +96,11 @@ class MetacriticScrapper:
     
     def _loadCurrentPage(self) -> None:
         self.current_elmt_num = 1 # Reset current element number
-        self.browse_page_soup = self._loadPage(self.url + f"?page={self.page_num}") # Load page soup
+        self.browse_page_soup = self._loadPageFromUrl(self.url + f"?page={self.page_num}") # Load page soup
         self._extractCurrentPageElements()
         print(f"Loaded page {self.page_num} with {self.max_elements} elements.")
     
-    def _loadPage(self, url) -> BeautifulSoup:
+    def _loadPageFromUrl(self, url) -> BeautifulSoup:
         response = requests.get(url, headers = self.USER_AGENT)
         return BeautifulSoup(response.text, "html.parser")
     
@@ -162,7 +162,7 @@ class MetacriticScrapper:
         
         return MediaInfo(
             element_pagination_title=current_element_title,
-            main_page = self._loadPage(main_page_link),
+            main_page = self._loadPageFromUrl(main_page_link),
             critic_reviews = critic_reviews,
             user_reviews = user_reviews
         )

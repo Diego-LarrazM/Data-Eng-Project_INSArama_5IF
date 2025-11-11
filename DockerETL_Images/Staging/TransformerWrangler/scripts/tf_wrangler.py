@@ -1,6 +1,5 @@
-from pymongo import MongoClient, AsyncMongoClient
+from pymongo import MongoClient #, AsyncMongoClient
 from urllib.parse import quote_plus
-import ast
 import os
 
 class TfWrangler:
@@ -21,11 +20,6 @@ class TfWrangler:
         if not os.path.exists(self.DATA_DIR):
             raise Exception(f"Data directory {self.DATA_DIR} does not exist.")
 
-    # def clean_nulls(self, collection_name): ...
-
-    def insert_data(self, collection_name, filename):
-        collection = self.db[collection_name]
-        with open(f"{self.DATA_DIR}{filename}", "r", encoding="utf-8") as file:
-            data = file.readlines()
-            documents = [ast.literal_eval(line) for line in data]
-            collection.insert_many(documents)
+    def clean_nulls(self, collection_name): 
+        coll = self.db[collection_name]
+        #coll.find({"$or": [{"field1": None}, {"field2": None}]})
