@@ -13,4 +13,4 @@ RUN chmod +x /app/scripts/start.sh
 CMD ["sh", "./scripts/start.sh"]
 
 # docker build -t ingestion/imdb_curler -f DockerETL_Images\Ingestion\IMDBCurler\Dockerfile DockerETL_Images\Ingestion\IMDBCurler
-# docker run --name Ingestion_Curler --network IngestionNet -v ./data:/app/data --rm --env-file .env ingestion/imdb_curler
+# docker run --name Ingestion_Curler --network IngestionNet -v ./DockerETL_Images/Ingestion/IMDBCurler/data:/app/data --rm --env-file .env ingestion/imdb_curler

@@ -30,7 +30,7 @@ with DAG(
         container_name="MetaCriticScrapper",
         image="ingestion/metacritic_scrapper:latest",
         api_version='auto',
-        auto_remove=True, # To make it dispappear once it finishes
+        auto_remove=True, # To make it disappear once it finishes
         command="sh -c '/app/scripts/start.sh'",
         docker_url="unix://var/run/docker.sock",
         network_mode="IngestionNet",

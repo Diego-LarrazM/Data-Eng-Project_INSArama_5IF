@@ -36,13 +36,12 @@ class MetacriticScrapper:
         self.page_num = 1  # 581 for testing end
         self.current_elmt_num = 1
         self.USER_AGENT = user_agent
-        
         # Pagination details to obtain browse page, review APIs and platform/season info container tag
         if category == MetacriticCategory.GAMES:
             self.pagination_info = {"browse":"game", "reviews": ("games","platform"), "sections_cssTag": None}
         elif category == MetacriticCategory.MOVIES:
             self.pagination_info =  {"browse":"movie", "reviews": ("movies", None), "sections_cssTag": None}
-        elif category == MetacriticCategory.GAMES:
+        elif category == MetacriticCategory.TV_SHOWS:
             self.pagination_info = {"browse":"tv", "reviews": ("seasons","season"), "sections_cssTag": None}
         else:
             raise f"Category {category} is not recognized... possible values: (GAMES, MOVIES, TV_SHOWS)."
