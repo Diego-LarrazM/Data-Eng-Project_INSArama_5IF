@@ -1,5 +1,3 @@
-from pymongo import MongoClient #, AsyncMongoClient
-
 from contextlib import contextmanager
 from sqlalchemy import create_engine, sessionmaker
 from models.base import DeclarativeMeta, ModelType
@@ -19,11 +17,7 @@ class Persistor:
         finally:
             session.close()
 
-    def __init__(self, mongo_conn_url: str, r_database: str, sqlw_conn_url: str):
-        # Set up MongoDB connection
-        self.client = MongoClient(host = mongo_conn_url) #or AsyncMongoClient for async operations
-        self.db = self.client[r_database]
-
+    def __init__(self, sqlw_conn_url: str):
         # Set up PostgreSQL connection
         self.r_url = sqlw_conn_url
         self.engine = create_engine(sqlw_conn_url, echo=False)
