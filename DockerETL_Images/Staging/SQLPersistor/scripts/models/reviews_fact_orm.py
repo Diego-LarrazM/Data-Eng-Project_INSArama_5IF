@@ -1,16 +1,17 @@
 from . import ModelsBase
-from sqlalchemy import Column, Integer, String, Float, DateTime, ForeignKey
+from sqlalchemy import Column, Integer, ForeignKey, String
 from sqlalchemy.orm import relationship
 
 class ReviewsFactORM(ModelsBase):
   __tablename__ = "reviews_fact"
   
   # Primary Keys
-  Reviewer_ID = Column(Integer, ForeignKey("reviewer_dim.id"), nullable=False)
-  Time_ID = Column(Integer, ForeignKey("time_dim.id"), nullable=False)
-  Platform_ID = Column(Integer, ForeignKey("platform_dim.id"), nullable=False)
-  MediaInfo_ID = Column(Integer, ForeignKey("mediainfo_dim.id"), nullable=False)
-  Franchise_ID = Column(Integer, ForeignKey("franchise_dim.id"), nullable=False)
+  Reviewer_ID = Column(Integer, ForeignKey("dim_reviewer.Reviewer_ID"), primary_key=True, nullable=False)
+  Time_ID = Column(Integer, ForeignKey("dim_time.Time_ID"), primary_key=True, nullable=False)
+  Platform_ID = Column(Integer, ForeignKey("dim_platform.Platform_ID"), primary_key=True, nullable=False)
+  MediaInfo_ID = Column(Integer, ForeignKey("dim_media_info.MediaInfo_ID"), primary_key=True, nullable=False)
+  #Franchise_ID = Column(Integer, ForeignKey("dim_franchise.Franchise_ID"), primary_key=True, nullable=False)
+  FranchiseTitle = Column(String, primary_key=True, nullable=False) # Degenerate dimension to reduce overhead
 
   # Facts
   RatingScore = Column(Integer, nullable=False)
