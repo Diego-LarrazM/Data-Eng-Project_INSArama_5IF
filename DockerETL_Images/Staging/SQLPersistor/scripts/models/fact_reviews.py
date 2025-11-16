@@ -3,7 +3,7 @@ from sqlalchemy import Column, Integer, ForeignKey, String
 from sqlalchemy.orm import relationship
 
 class ReviewsFactORM(ModelsBase):
-  __tablename__ = "reviews_fact"
+  __tablename__ = "FACT_REVIEWS"
   
   # Primary Keys
   Reviewer_ID = Column(Integer, ForeignKey("dim_reviewer.Reviewer_ID"), primary_key=True, nullable=False)
