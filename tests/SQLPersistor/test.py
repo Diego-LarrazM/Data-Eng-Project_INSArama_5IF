@@ -9,8 +9,8 @@ from models import *
 # Read 
 R_HOST = "localhost"
 R_PORT = 27017
-R_USERNAME = "test"
-R_PASSWORD = "test"
+R_USERNAME = ""#"test"
+R_PASSWORD = ""#"test"
 MONGO_DB = "testdb"
 REPLICA_SET_NAME = "TestReplicaSet"
 

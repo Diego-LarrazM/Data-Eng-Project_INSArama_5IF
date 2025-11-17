@@ -1,6 +1,7 @@
 from pymongo import MongoClient #, AsyncMongoClient
 from pymongo.client_session import ClientSession
 from execution import *
+from decimal import Decimal
 import ijson
 import ast
 import os
@@ -19,6 +20,17 @@ class MongoLoader:
         # Set up MongoDB connection
         self.client = MongoClient(host = mongo_conn_url) #or AsyncMongoClient for async operations
         self.db = self.client[database]
+    
+    def _convert_decimals(self, obj):
+        """Recursively convert all Decimal values in a dict/list to float."""
+        if isinstance(obj, dict):
+            return {k: self._convert_decimals(v) for k, v in obj.items()}
+        elif isinstance(obj, list):
+            return [self._convert_decimals(item) for item in obj]
+        elif isinstance(obj, Decimal):
+            return float(obj)
+        else:
+            return obj
 
     @safe_execute
     @with_transaction

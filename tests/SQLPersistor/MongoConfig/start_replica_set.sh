@@ -2,7 +2,7 @@
 set -e
 
 # Run rs.initiate and rs.status via mongosh non-interactively
-docker exec -i mongo_test_server mongosh -u test -p test --authenticationDatabase admin <<'EOF'
+docker exec -i mongo_test_server mongosh --authenticationDatabase admin <<'EOF'
 rs.initiate({
   _id: "TestReplicaSet",
   members: [

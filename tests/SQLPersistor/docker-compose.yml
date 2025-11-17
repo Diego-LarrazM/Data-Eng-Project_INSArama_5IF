@@ -2,36 +2,32 @@ services:
   mongo_test_server:
     image: mongo:7.0
     container_name: mongo_test_server
-    command: ["--replSet", "TestReplicaSet", "--bind_ip_all", "--port", "27017", "--keyFile", "/etc/mongodb/pki/keyfile"]
-    restart: always
+    command: ["--replSet", "TestReplicaSet", "--bind_ip_all", "--port", "27017"]
     ports: #[]         # only accessible from containers in net
       - 27017:27017    # for testing locally
     environment:
-      MONGO_INITDB_ROOT_USERNAME: test
-      MONGO_INITDB_ROOT_PASSWORD: test
       REPLICA_SET: TestReplicaSet
       MONGO_PORT: 27017
-    volumes:
-      - ${PWD}/rs_keyfile:/etc/mongodb/pki/keyfile
+    volumes: []
       #- datapath:/data/db
     networks:
       - TestNet
   
-  # postgres_db:
-  #   image: postgres:16
-  #   container_name: postgres_test_server
-  #   environment:
-  #     POSTGRES_USER: test
-  #     POSTGRES_PASSWORD: test
-  #     POSTGRES_DB: TestQl
-  #     PGUSER: test
-  #     PGPASSWORD: test
-  #     PGDATABASE: TestQl
-  #   ports:
-  #     - 5432:5432
-  #   restart: always
-  #   networks:
-  #     - TestNet
+  postgres_db:
+    image: postgres:16
+    container_name: postgres_test_server
+    environment:
+      POSTGRES_USER: test
+      POSTGRES_PASSWORD: test
+      POSTGRES_DB: TestQl
+      PGUSER: test
+      PGPASSWORD: test
+      PGDATABASE: TestQl
+    ports:
+      - 5432:5432
+    restart: always
+    networks:
+      - TestNet
 
 
 networks:
