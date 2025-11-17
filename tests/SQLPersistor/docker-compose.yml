@@ -1,8 +1,9 @@
 services:
-  mongo_db:
+  mongo_test_server:
     image: mongo:7.0
     container_name: mongo_test_server
-    command: ["--config", "/mongo-config/mongo-config.yml", "--bind_ip_all"]
+    command: ["--replSet", "TestReplicaSet", "--bind_ip_all", "--port", "27017", "--keyFile", "/etc/mongodb/pki/keyfile"]
+    restart: always
     ports: #[]         # only accessible from containers in net
       - 27017:27017    # for testing locally
     environment:
@@ -10,9 +11,8 @@ services:
       MONGO_INITDB_ROOT_PASSWORD: test
       REPLICA_SET: TestReplicaSet
       MONGO_PORT: 27017
-    volumes: #[]
-      - ./MongoConfig/config_mongo_test_server.yml:/mongo-config/mongo-config.yml
-      - ./MongoConfig/keyfile:/mongo-config/keyfile
+    volumes:
+      - ${PWD}/rs_keyfile:/etc/mongodb/pki/keyfile
       #- datapath:/data/db
     networks:
       - TestNet
