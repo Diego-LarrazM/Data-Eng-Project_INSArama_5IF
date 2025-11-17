@@ -6,8 +6,8 @@ class MediaGenreBridgeORM(ModelsBase):
   __tablename__ = "BRIDGE_MEDIA_GENRE"
   
   # Primary Keys
-  MediaInfo_ID = Column(Integer, ForeignKey("dim_media_info.MediaInfo_ID"), primary_key=True, nullable=False)
-  Genre_ID = Column(Integer, ForeignKey("genres.Genre_ID"), primary_key=True, nullable=False)
+  MediaInfo_ID = Column(Integer, ForeignKey("DIM_MEDIA_INFO.MediaInfo_ID"), primary_key=True, nullable=False)
+  Genre_ID = Column(Integer, ForeignKey("GENRES.Genre_ID"), primary_key=True, nullable=False)
 
   # Fields
   Weight = Column(Float, nullable=False)

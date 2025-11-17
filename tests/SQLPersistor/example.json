@@ -31,7 +31,7 @@
       "OriginalTitle": "Galactic Odyssey: Dawn",
       "MediaType": "Game",
       "ReleaseDate": "2020-05-01T00:00:00",
-      "Duration": 42.5,
+      "Duration": "42.5",
       "Description": "A space-faring RPG following the rise of a new star captain.",
       "PEGI_MPA_Rating": 12
     },
@@ -42,7 +42,7 @@
       "OriginalTitle": "Echoes of Time",
       "MediaType": "Movie",
       "ReleaseDate": "2018-11-12T00:00:00",
-      "Duration": 128.0,
+      "Duration": "128.0",
       "Description": "A drama exploring parallel timelines and human connection.",
       "PEGI_MPA_Rating": 16
     },
@@ -53,7 +53,7 @@
       "OriginalTitle": "鋼鉄大隊",
       "MediaType": "Anime",
       "ReleaseDate": "2022-02-15T00:00:00",
-      "Duration": 24.0,
+      "Duration": "24.0",
       "Description": "Mechs, war, and the bonds between pilots.",
       "PEGI_MPA_Rating": 13
     },
@@ -64,7 +64,7 @@
       "OriginalTitle": "Festival d'Échos",
       "MediaType": "Movie",
       "ReleaseDate": "2019-08-30T00:00:00",
-      "Duration": 102.0,
+      "Duration": "102.0",
       "Description": "A surreal journey through memory and identity.",
       "PEGI_MPA_Rating": 15
     },
@@ -75,7 +75,7 @@
       "OriginalTitle": "Quantum Racer",
       "MediaType": "Game",
       "ReleaseDate": "2021-12-01T00:00:00",
-      "Duration": 15.0,
+      "Duration": "15.0",
       "Description": "High-speed racing across multidimensional tracks.",
       "PEGI_MPA_Rating": 7
     }
@@ -106,27 +106,27 @@
   ],
 
   "BRIDGE_MEDIA_COMPANY": [
-    {"MediaInfo_ID": 101, "Company_ID": 12, "Weight": 1.00},
-    {"MediaInfo_ID": 102, "Company_ID": 7, "Weight": 1.00},
-    {"MediaInfo_ID": 205, "Company_ID": 12, "Weight": 1.00},
-    {"MediaInfo_ID": 333, "Company_ID": 2, "Weight": 1.00},
-    {"MediaInfo_ID": 404, "Company_ID": 9, "Weight": 1.00}
+    {"MediaInfo_ID": 101, "Company_ID": 1, "Weight": "1.00"},
+    {"MediaInfo_ID": 102, "Company_ID": 2, "Weight": "1.00"},
+    {"MediaInfo_ID": 205, "Company_ID": 3, "Weight": "1.00"},
+    {"MediaInfo_ID": 333, "Company_ID": 4, "Weight": "1.00"},
+    {"MediaInfo_ID": 404, "Company_ID": 5, "Weight": "1.00"}
   ],
 
   "BRIDGE_MEDIA_GENRE": [
-    {"MediaInfo_ID": 101, "Genre_ID": 3, "Weight": 0.50},
-    {"MediaInfo_ID": 101, "Genre_ID": 9, "Weight": 0.50},
-    {"MediaInfo_ID": 205, "Genre_ID": 1, "Weight": 1.00},
-    {"MediaInfo_ID": 333, "Genre_ID": 4, "Weight": 1.00},
-    {"MediaInfo_ID": 404, "Genre_ID": 7, "Weight": 1.00}
+    {"MediaInfo_ID": 101, "Genre_ID": 3, "Weight": "0.50"},
+    {"MediaInfo_ID": 101, "Genre_ID": 5, "Weight": "0.50"},
+    {"MediaInfo_ID": 205, "Genre_ID": 1, "Weight": "1.00"},
+    {"MediaInfo_ID": 333, "Genre_ID": 4, "Weight": "1.00"},
+    {"MediaInfo_ID": 404, "Genre_ID": 2, "Weight": "1.00"}
   ],
 
   "BRIDGE_MEDIA_ROLE": [
-    {"MediaInfo_ID": 101, "Role_ID": 5001, "Weight": 1.00},
-    {"MediaInfo_ID": 102, "Role_ID": 5100, "Weight": 1.00},
-    {"MediaInfo_ID": 205, "Role_ID": 5002, "Weight": 1.00},
-    {"MediaInfo_ID": 333, "Role_ID": 5111, "Weight": 1.00},
-    {"MediaInfo_ID": 404, "Role_ID": 5200, "Weight": 1.00}
+    {"MediaInfo_ID": 101, "Role_ID": 5001, "Weight": "1.00"},
+    {"MediaInfo_ID": 102, "Role_ID": 5100, "Weight": "1.00"},
+    {"MediaInfo_ID": 205, "Role_ID": 5002, "Weight": "1.00"},
+    {"MediaInfo_ID": 333, "Role_ID": 5111, "Weight": "1.00"},
+    {"MediaInfo_ID": 404, "Role_ID": 5200, "Weight": "1.00"}
   ],
 
   "FACT_REVIEWS": [

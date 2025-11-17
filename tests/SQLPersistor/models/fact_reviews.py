@@ -6,10 +6,10 @@ class ReviewsFactORM(ModelsBase):
   __tablename__ = "FACT_REVIEWS"
   
   # Primary Keys
-  Reviewer_ID = Column(Integer, ForeignKey("dim_reviewer.Reviewer_ID"), primary_key=True, nullable=False)
-  Time_ID = Column(Integer, ForeignKey("dim_time.Time_ID"), primary_key=True, nullable=False)
-  Platform_ID = Column(Integer, ForeignKey("dim_platform.Platform_ID"), primary_key=True, nullable=False)
-  MediaInfo_ID = Column(Integer, ForeignKey("dim_media_info.MediaInfo_ID"), primary_key=True, nullable=False)
+  Reviewer_ID = Column(Integer, ForeignKey("DIM_REVIEWER.Reviewer_ID"), primary_key=True, nullable=False)
+  Time_ID = Column(Integer, ForeignKey("DIM_TIME.Time_ID"), primary_key=True, nullable=False)
+  Platform_ID = Column(Integer, ForeignKey("DIM_PLATFORM.Platform_ID"), primary_key=True, nullable=False)
+  MediaInfo_ID = Column(Integer, ForeignKey("DIM_MEDIA_INFO.MediaInfo_ID"), primary_key=True, nullable=False)
   #Franchise_ID = Column(Integer, ForeignKey("dim_franchise.Franchise_ID"), primary_key=True, nullable=False)
   FranchiseTitle = Column(String, primary_key=True, nullable=False) # Degenerate dimension to reduce overhead
 
@@ -21,7 +21,7 @@ class ReviewsFactORM(ModelsBase):
   time = relationship("TimeDimORM")
   platform = relationship("PlatformDimORM")
   mediainfo = relationship("MediaInfoDimORM")
-  franchise = relationship("FranchiseDimORM")
+  #franchise = relationship("FranchiseDimORM")
 
   def __repr__(self):
     return (f"<ReviewsFactORM(Reviewer_ID={self.Reviewer_ID}, Time_ID={self.Time_ID}, "

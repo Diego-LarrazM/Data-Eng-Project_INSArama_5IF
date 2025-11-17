@@ -6,8 +6,8 @@ class MediaCompanyBridgeORM(ModelsBase):
   __tablename__ = "BRIDGE_MEDIA_COMPANY"
   
   # Primary Keys
-  MediaInfo_ID = Column(Integer, ForeignKey("dim_media_info.MediaInfo_ID"), primary_key=True, nullable=False)
-  Company_ID = Column(Integer, ForeignKey("companies.Company_ID"), primary_key=True, nullable=False)
+  MediaInfo_ID = Column(Integer, ForeignKey("DIM_MEDIA_INFO.MediaInfo_ID"), primary_key=True, nullable=False)
+  Company_ID = Column(Integer, ForeignKey("COMPANIES.Company_ID"), primary_key=True, nullable=False)
 
   # Fields
   Weight = Column(Float, nullable=False)
