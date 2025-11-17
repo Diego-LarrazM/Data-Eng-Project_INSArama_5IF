@@ -17,4 +17,11 @@ replication:
 
 security:
   authorization: enabled
-  keyFile: /etc/mongo-config/keyfile
+  keyFile: /mongo-config/keyfile
+
+processManagement:
+  fork: false
+  
+setParameter:
+  enableTestCommands: 0
+  diagnosticDataCollectionEnabled: false
