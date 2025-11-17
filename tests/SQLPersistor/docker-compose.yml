@@ -1,0 +1,59 @@
+version: '3.8'
+services:
+  mongo_db:
+    image: mongo:7.0
+    container_name: mongo_test_server
+    command: ["/start.sh"]
+    # [ # https://www.mongodb.com/docs/v8.0/reference/program/mongod/
+    #   "mongod",
+    #   "--replSet", "TestReplicaSet",
+    #   "--bind_ip_all",                     # read all IPv4s to permit reading from containers
+    #   "--keyFile /etc/mongo-keyfile/keyfile",
+    #   #"--wiredTigerCacheSizeGB", "8",     # sets available RAM for storage engine (wiredTiger by default, 50% of RAM-1GB by default)
+    #   #"--journalCommitInterval", "50",    # faster commits for small transactions
+    #   #"--wiredTigerCollectionBlockCompressor", "snappy" # "zstd" is better compression but slower, default is snappy
+    # ]
+    ports: #[]         # only accessible from containers in net
+      - 27017:27017    # for testing locally
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: test
+      MONGO_INITDB_ROOT_PASSWORD: test
+      CONFIG_FILE: /etc/mongo-config/mongo-config.yml
+      REPLICA_SET: TestReplicaSet
+      MONGO_PORT: 27017
+    healthcheck:
+      test: echo "try { rs.status() } catch (err) { rs.initiate({_id:'rs0',members:[{_id:0,host:'host.docker.internal:27017'}]}) }" | mongosh --port 27017 --quiet
+      interval: 5s
+      timeout: 30s
+      start_period: 0s
+      start_interval: 1s
+      retries: 30
+    volumes: #[]
+      - ./MongoConfig/config_mongo_test_server.yml:/etc/mongo-config/mongo-config.yml:ro
+      - ./MongoConfig/keyfile:/etc/mongo-config/keyfile
+      - ./MongoConfig/start.sh:/start.sh
+      #- datapath:/data/db
+    networks:
+      - TestNet
+  
+  postgres_db:
+    image: postgres:16
+    container_name: postgres_test_server
+    environment:
+      POSTGRES_USER: test
+      POSTGRES_PASSWORD: test
+      POSTGRES_DB: TestQl
+      PGUSER: test
+      PGPASSWORD: test
+      PGDATABASE: TestQl
+    ports:
+      - 5432:5432
+    restart: always
+    networks:
+      - TestNet
+
+
+networks:
+  TestNet:
+    name: test_net
+    driver: bridge
