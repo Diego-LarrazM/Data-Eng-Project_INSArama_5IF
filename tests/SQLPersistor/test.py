@@ -5,17 +5,24 @@ from mongo_extractor_factory import MongoExtractorFactory
 from mongo_loader import MongoLoader
 from models import *
 
+import os
+from dotenv import load_dotenv
+
+dotenv_path = os.path.join(os.path.dirname(__file__), '.env')
+load_dotenv(dotenv_path)
+
 # ------------- < Constants > -------------
-# Read 
-R_HOST = "localhost"
-R_PORT = 27017
-R_USERNAME = ""#"test"
-R_PASSWORD = ""#"test"
-MONGO_DB = "testdb"
-REPLICA_SET_NAME = "TestReplicaSet"
+# Read
+R_HOST = "localhost"#os.environ.get("MONGO_HOST_NAME")
+R_PORT = int(os.environ.get("MONGO_PORT"))
+R_USERNAME = ""#os.environ.get("MONGO_USERNAME")
+R_PASSWORD = ""#os.environ.get("MONGO_PASSWORD")
+MONGO_DB = os.environ.get("MONGO_DB")
+REPLICA_SET_NAME= os.environ.get("MONGO_RSET_NAME")
 
 # Write
-POSTGRES_DB_URL = "postgresql+psycopg2://test:test@localhost:5432/TestQl"
+POSTGRES_HOST = "localhost"#os.environ.get('POSTGRES_HOST')
+POSTGRES_DB_URL = f"postgresql+psycopg2://{os.environ.get('POSTGRES_USER')}:{os.environ.get('POSTGRES_PASSWORD')}@{POSTGRES_HOST}:{os.environ.get('POSTGRES_PORT')}/{os.environ.get("POSTGRES_DB")}"
 
 # ------------- < main > -------------
 if __name__ == "__main__":
@@ -24,11 +31,13 @@ if __name__ == "__main__":
     credentials = ""
     if R_USERNAME and R_PASSWORD:
         credentials = f"{quote_plus(R_USERNAME)}:{quote_plus(R_PASSWORD)}@"
-    mongo_url = f"mongodb://{credentials}{R_HOST}:{R_PORT}/?replicaSet={REPLICA_SET_NAME}"
+    MONGO_URL = f"mongodb://{credentials}{R_HOST}:{R_PORT}/?replicaSet={REPLICA_SET_NAME}"
+    
+    print(f"Connecting(Mongo) to: <{MONGO_URL}>...")
 
     # Transient load
     loader = MongoLoader(
-        mongo_conn_url=mongo_url,
+        mongo_conn_url=MONGO_URL,
         database=MONGO_DB
     )
 
@@ -57,9 +66,12 @@ if __name__ == "__main__":
     ]
 
     ex_factory = MongoExtractorFactory(
-        mongo_conn_url=mongo_url,
+        mongo_conn_url=MONGO_URL,
         r_database=MONGO_DB
     )
+    
+    print(f"Connecting(Postgres) to: <{POSTGRES_DB_URL}>...")
+    
     persistor = Persistor(sqlw_conn_url=POSTGRES_DB_URL)
     if persistor.create_tables(ModelsBase):
         raise Exception("Stopped...")
