@@ -1,7 +1,6 @@
 from pymongo import MongoClient #, AsyncMongoClient
 from pymongo.client_session import ClientSession
 from execution import *
-from decimal import Decimal
 import ijson.backends.python as ijson
 import ast
 import os
