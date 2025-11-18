@@ -1,3 +1,5 @@
+https://mermaid.live/edit
+
 ```mermaid
 ---
 title: Media Review Star Schema
