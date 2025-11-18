@@ -8,7 +8,7 @@ TEMPLATE="./docker-compose.template.yml"
 OUTPUT="./docker-compose.yml"
 
 if [ ! -f "$TEMPLATE" ]; then
-  echo "\n<% Template file not found: $TEMPLATE %>"
+  echo "\n<@@ Template file not found: $TEMPLATE @@>"
   exit 1
 fi
 
@@ -39,7 +39,7 @@ echo "[ Starting docker compose... ]"
 
 docker compose up -d
 if [ $? -ne 0 ]; then
-  echo "\n<% Docker compose failed. %>"
+  echo "\n<@@ Docker compose failed. @@>"
   exit 1
 fi
 

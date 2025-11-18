@@ -4,7 +4,9 @@ WORKDIR /app
 
 COPY . .
 
-RUN pip install --no-cache-dir -r ./config/requirements.txt
+# Download gcc and SQLClient for psycog2
+RUN apt-get update && apt-get install -y gcc python3-dev libpq-dev && \
+    pip install --no-cache-dir -r ./config/requirements.txt
 
 RUN chmod +x /app/scripts/start.sh
 

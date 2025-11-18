@@ -1,5 +1,6 @@
 from contextlib import contextmanager
-from sqlalchemy import create_engine, sessionmaker
+from sqlalchemy import create_engine
+from sqlalchemy.orm import sessionmaker
 from models.base import DeclarativeMeta, ModelType
 from utils.execution import *
 
@@ -39,5 +40,3 @@ class Persistor:
         with self.session_scope() as session:
             session.add_all(obj_list)
         return SUCCESS
-    
-    

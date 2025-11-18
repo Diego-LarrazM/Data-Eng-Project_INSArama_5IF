@@ -29,7 +29,3 @@ class MongoExtractorFactory:
         # Set up MongoDB connection
         self.client = MongoClient(host = mongo_conn_url) #or AsyncMongoClient for async operations
         self.db = self.client[r_database]
-    
-    
-    
-    

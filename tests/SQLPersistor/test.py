@@ -20,18 +20,38 @@ R_PASSWORD = ""#os.environ.get("MONGO_PASSWORD")
 MONGO_DB = os.environ.get("MONGO_DB")
 REPLICA_SET_NAME= os.environ.get("MONGO_RSET_NAME")
 
+credentials = ""
+if R_USERNAME and R_PASSWORD:
+    credentials = f"{quote_plus(R_USERNAME)}:{quote_plus(R_PASSWORD)}@"
+MONGO_URL = f"mongodb://{credentials}{R_HOST}:{R_PORT}/"
+
 # Write
 POSTGRES_HOST = "localhost"#os.environ.get('POSTGRES_HOST')
 POSTGRES_DB_URL = f"postgresql+psycopg2://{os.environ.get('POSTGRES_USER')}:{os.environ.get('POSTGRES_PASSWORD')}@{POSTGRES_HOST}:{os.environ.get('POSTGRES_PORT')}/{os.environ.get("POSTGRES_DB")}"
 
+POSTGRES_LOAD_BATCH_SIZE= int(os.environ.get("POSTGRES_LOAD_BATCH_SIZE", 100))
+
+COLLECTIONS = [  # ORDER MATTERS WITH RELATIONSHIPS !
+    # Bridged Entities
+    ("COMPANIES", CompanyORM),
+    ("GENRES", GenreORM),
+    ("ROLES", RoleORM),
+    # Dimensions
+    ("DIM_FRANCHISE", FranchiseDimORM),
+    ("DIM_MEDIA_INFO", MediaInfoDimORM),
+    ("DIM_PLATFORM", PlatformDimORM),
+    ("DIM_REVIEWER", ReviewerDimORM),
+    ("DIM_TIME", TimeDimORM),
+    # Bridges
+    ("BRIDGE_MEDIA_ROLE", MediaRoleBridgeORM),
+    ("BRIDGE_MEDIA_GENRE", MediaGenreBridgeORM),
+    ("BRIDGE_MEDIA_COMPANY", MediaCompanyBridgeORM),
+    # Fact
+    ("FACT_REVIEWS", ReviewsFactORM)
+]
+
 # ------------- < main > -------------
 if __name__ == "__main__":
-    print("Starting...")
-
-    credentials = ""
-    if R_USERNAME and R_PASSWORD:
-        credentials = f"{quote_plus(R_USERNAME)}:{quote_plus(R_PASSWORD)}@"
-    MONGO_URL = f"mongodb://{credentials}{R_HOST}:{R_PORT}/?replicaSet={REPLICA_SET_NAME}"
     
     print(f"Connecting(Mongo) to: <{MONGO_URL}>...")
 
@@ -46,44 +66,39 @@ if __name__ == "__main__":
     print("Loaded examples.")
 
     # Extracting and Persisting
-    collections = [  # ORDER MATTERS WITH RELATIONSHIPS !
-        # Bridged Entities
-        ("COMPANIES", CompanyORM),
-        ("GENRES", GenreORM),
-        ("ROLES", RoleORM),
-        # Dimensions
-        ("DIM_FRANCHISE", FranchiseDimORM),
-        ("DIM_MEDIA_INFO", MediaInfoDimORM),
-        ("DIM_PLATFORM", PlatformDimORM),
-        ("DIM_REVIEWER", ReviewerDimORM),
-        ("DIM_TIME", TimeDimORM),
-        # Bridges
-        ("BRIDGE_MEDIA_ROLE", MediaRoleBridgeORM),
-        ("BRIDGE_MEDIA_GENRE", MediaGenreBridgeORM),
-        ("BRIDGE_MEDIA_COMPANY", MediaCompanyBridgeORM),
-        # Fact
-        ("FACT_REVIEWS", ReviewsFactORM)
-    ]
+    print(f"[ Connecting to (Mongo): <{MONGO_URL}>... ]")
+
 
     ex_factory = MongoExtractorFactory(
         mongo_conn_url=MONGO_URL,
         r_database=MONGO_DB
     )
     
-    print(f"Connecting(Postgres) to: <{POSTGRES_DB_URL}>...")
+    
+    print("<-- MongoExtractorFactory connected -->\n")
+    
+    print(f"[ Connecting to (Postgres): <{POSTGRES_DB_URL}>... ]")
+    
     
     persistor = Persistor(sqlw_conn_url=POSTGRES_DB_URL)
     if persistor.create_tables(ModelsBase):
-        raise Exception("Stopped...")
+        raise Exception("<@@ Pipeline Stopped...(FAIL) @@>")
+    
+    
+    print("<-- Tables created -->\n")
 
-    print("Tables created.")
-
+    print(f"[ Loading to DataWarehouse ]")
+    print(f"src   : <{MONGO_URL}>")
+    print(f"target: <{POSTGRES_DB_URL}>\n")
+    
+    
     fail_counter = 0
     counter = 0
-    for collection_name, model in collections:
-      for object in ex_factory(collection_name, model, batch_size=2):
+    for collection_name, model in COLLECTIONS:
+      for object in ex_factory(collection_name, model, batch_size=POSTGRES_LOAD_BATCH_SIZE):
           fail_counter+=persistor.persist(object)
           counter+=1
+          
     
-    print(f"<-- Persisted successfully {counter-fail_counter}/{counter} rows -->")
+    print(f"\n---------- < Persisted successfully {counter-fail_counter}/{counter} rows > ----------")
     

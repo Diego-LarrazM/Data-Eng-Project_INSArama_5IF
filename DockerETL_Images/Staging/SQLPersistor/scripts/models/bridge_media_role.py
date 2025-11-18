@@ -6,8 +6,8 @@ class MediaRoleBridgeORM(ModelsBase):
   __tablename__ = "BRIDGE_MEDIA_ROLE"
   
   # Primary Keys
-  MediaInfo_ID = Column(Integer, ForeignKey("dim_media_info.MediaInfo_ID"), primary_key=True, nullable=False)
-  Role_ID = Column(Integer, ForeignKey("roles.Role_ID"), primary_key=True, nullable=False)
+  MediaInfo_ID = Column(Integer, ForeignKey("DIM_MEDIA_INFO.MediaInfo_ID"), primary_key=True, nullable=False)
+  Role_ID = Column(Integer, ForeignKey("ROLES.Role_ID"), primary_key=True, nullable=False)
 
   # Fields
   Weight = Column(Float, nullable=False)

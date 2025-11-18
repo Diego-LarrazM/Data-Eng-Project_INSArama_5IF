@@ -40,5 +40,3 @@ class Persistor:
         with self.session_scope() as session:
             session.add_all(obj_list)
         return SUCCESS
-    
-    

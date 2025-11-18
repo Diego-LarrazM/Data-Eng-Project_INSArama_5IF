@@ -64,4 +64,3 @@ class MongoLoader:
             raise Exception(f"Data to load not provided.")
         self.db[collection_name].insert_many(data, session=session)
         return SUCCESS
-        
