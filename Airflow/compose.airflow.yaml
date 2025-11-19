@@ -390,7 +390,3 @@ services:
       - "${AIRFLOW_PGADMIN_PORT}:80" # type localhost:5050 to your browser to access the UI
     networks:
       - INSARAMA_NET
-
-networks:
-  insarama_net:
-    external: true 

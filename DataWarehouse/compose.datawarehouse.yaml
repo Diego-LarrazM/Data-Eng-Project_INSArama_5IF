@@ -11,7 +11,3 @@ services:
     restart: always
     networks:
       - INSARAMA_NET
-
-networks:
-  insarama_net:
-    external: true 

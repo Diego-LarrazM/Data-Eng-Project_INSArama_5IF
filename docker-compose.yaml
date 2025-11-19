@@ -12,4 +12,5 @@ include:
 networks:
   INSARAMA_NET:
     name: insarama_net
-    driver: bridge # simple isolation
+    driver: bridge  # simple isolation for usecase
+    external: false # enables docker compose down to remove named net
