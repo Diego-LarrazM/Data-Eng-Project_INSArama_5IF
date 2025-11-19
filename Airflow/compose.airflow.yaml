@@ -53,16 +53,15 @@ x-airflow-common:
   build: .  
   environment:
     &airflow-common-env
-    # # For Docker Envs
-    # IMDB_FILES_TO_DOWNLOAD: ${IMDB_FILES_TO_DOWNLOAD}
-    # IMDB_DATA_URL: ${IMDB_DATA_URL}
-    # DATA_FILE_DIRECTORY: ${DATA_FILE_DIRECTORY}
-    # MONGO_USERNAME: ${MONGO_USERNAME}
-    # MONGO_PASSWORD: ${MONGO_PASSWORD}
-    # MONGO_HOST_NAME: ${MONGO_HOST_NAME}
-    # MONGO_PORT: ${MONGO_PORT}
-    # MONGO_DB: ${MONGO_DB}
-    # MONGO_MEDIA_COLLECTION: ${MONGO_MEDIA_COLLECTION}
+    # For Mongo Transient Storage Container
+    MONGO_USERNAME: ${MONGO_USERNAME}
+    MONGO_PASSWORD: ${MONGO_PASSWORD}
+    MONGO_HOST_NAME: ${MONGO_HOST_NAME}
+    MONGO_PORT: ${MONGO_PORT}
+    MONGO_DB: ${MONGO_DB}
+    MONGO_RSET_NAME: ${MONGO_RSET_NAME}
+    MONGO_HEALTHCHECK_RETRIES: ${MONGO_HEALTHCHECK_RETRIES}
+    MONGO_MEDIA_COLLECTION: ${MONGO_MEDIA_COLLECTION}
     # For Airflow
     AIRFLOW__CORE__EXECUTOR: airflow.providers.celery.executors.celery_executor.CeleryExecutor    
     AIRFLOW__CORE__AUTH_MANAGER: airflow.providers.fab.auth_manager.fab_auth_manager.FabAuthManager
@@ -84,6 +83,8 @@ x-airflow-common:
     _PIP_ADDITIONAL_REQUIREMENTS: ${_PIP_ADDITIONAL_REQUIREMENTS:-}
     # The following line can be used to set a custom config file, stored in the local config folder
     AIRFLOW_CONFIG: '/opt/airflow/config/airflow.cfg'
+    # For internal path finding
+    AIRFLOW_DIR: "/opt/airflow" 
   volumes:
     - ${AIRFLOW_PROJ_DIR:-.}/dags:/opt/airflow/dags
     - ${AIRFLOW_PROJ_DIR:-.}/logs:/opt/airflow/logs
@@ -91,6 +92,7 @@ x-airflow-common:
     - ${AIRFLOW_PROJ_DIR:-.}/plugins:/opt/airflow/plugins
     - ${AIRFLOW_PROJ_DIR:-.}/data:/opt/airflow/data
     - ${AIRFLOW_PROJ_DIR:-.}/.env:/opt/airflow/.env # Docker Container Env
+    - ${AIRFLOW_PROJ_DIR:-.}/setup_mongo_transient_storage.sh:/opt/airflow/setup_mongo_transient_storage.sh # Mongo Transient Server setup shell-script
     - /var/run/docker.sock:/var/run/docker.sock # to enable DockerOperator
   user: "${AIRFLOW_UID:-50000}:0"
   depends_on:
@@ -101,35 +103,15 @@ x-airflow-common:
       condition: service_healthy
 
 services:
-
-  # ----------- MongoDB Service ----------------
-  mongodb_server:
-    image: mongo:latest
-    container_name: ${MONGO_HOST_NAME}
-    ports:
-      - "${MONGO_PORT}:27017"
-    environment:
-      MONGO_INITDB_ROOT_USERNAME: ${MONGO_USERNAME}
-      MONGO_INITDB_ROOT_PASSWORD: ${MONGO_PASSWORD}
-    networks:
-      - IngestionNet
-  # ----------- End of MongoDB Service ---------
-
-
-
-
-
-
-  # ----------- Airflow Service ----------------
   postgres:
     image: postgres:16
     environment:
-      POSTGRES_USER: ${POSTGRES_USER}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
-      POSTGRES_DB: ${POSTGRES_DB}
-      PGUSER: ${POSTGRES_USER} # for the psql client
-      PGPASSWORD: ${POSTGRES_PASSWORD} # for the psql client
-      PGDATABASE: ${POSTGRES_DB} # for the psql client
+      AIRFLOW_POSTGRES_USER: ${AIRFLOW_POSTGRES_USER}
+      AIRFLOW_POSTGRES_PASSWORD: ${AIRFLOW_POSTGRES_PASSWORD}
+      AIRFLOW_POSTGRES_DB: ${AIRFLOW_POSTGRES_DB}
+      PGUSER: ${AIRFLOW_POSTGRES_USER} # for the psql client
+      PGPASSWORD: ${AIRFLOW_POSTGRES_PASSWORD} # for the psql client
+      PGDATABASE: ${AIRFLOW_POSTGRES_DB} # for the psql client
     ports:
       - "5432:5432"
     healthcheck:
@@ -139,7 +121,7 @@ services:
       start_period: 5s
     restart: always
     networks:
-      - IngestionNet
+      - INSARAMA_NET
 
   redis:
     # Redis is limited to 7.2-bookworm due to licencing change
@@ -155,7 +137,7 @@ services:
       start_period: 30s
     restart: always
     networks:
-      - IngestionNet
+      - INSARAMA_NET
 
   airflow-apiserver:
     <<: *airflow-common
@@ -170,7 +152,7 @@ services:
       start_period: 30s
     restart: always
     networks:
-      - IngestionNet
+      - INSARAMA_NET
     depends_on:
       <<: *airflow-common-depends-on
       airflow-init:
@@ -187,7 +169,7 @@ services:
       start_period: 30s
     restart: always
     networks:
-      - IngestionNet
+      - INSARAMA_NET
     depends_on:
       <<: *airflow-common-depends-on
       airflow-init:
@@ -204,7 +186,7 @@ services:
       start_period: 30s
     restart: always
     networks:
-      - IngestionNet
+      - INSARAMA_NET
     depends_on:
       <<: *airflow-common-depends-on
       airflow-init:
@@ -229,7 +211,7 @@ services:
       DUMB_INIT_SETSID: "0"
     restart: always
     networks:
-      - IngestionNet
+      - INSARAMA_NET
     depends_on:
       <<: *airflow-common-depends-on
       airflow-apiserver:
@@ -248,7 +230,7 @@ services:
       start_period: 30s
     restart: always
     networks:
-      - IngestionNet
+      - INSARAMA_NET
     depends_on:
       <<: *airflow-common-depends-on
       airflow-init:
@@ -346,7 +328,7 @@ services:
       _PIP_ADDITIONAL_REQUIREMENTS: ''
     user: "0:0"
     networks:
-      - IngestionNet
+      - INSARAMA_NET
 
   airflow-cli:
     <<: *airflow-common
@@ -361,7 +343,7 @@ services:
       - -c
       - airflow
     networks:
-      - IngestionNet
+      - INSARAMA_NET
     depends_on:
       <<: *airflow-common-depends-on
 
@@ -383,7 +365,7 @@ services:
       start_period: 30s
     restart: always
     networks:
-      - IngestionNet
+      - INSARAMA_NET
     depends_on:
       <<: *airflow-common-depends-on
       airflow-init:
@@ -397,14 +379,4 @@ services:
     ports:
       - "${PGADMIN_PORT}:80" # type localhost:5050 to your browser to access the UI
     networks:
-      - IngestionNet
-  # ----------- End of Airflow Service ---------
-
-
-
-
-
-
-networks:
-  IngestionNet:
-    name: IngestionNet
+      - INSARAMA_NET

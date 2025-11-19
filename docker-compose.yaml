@@ -1,0 +1,15 @@
+name: insarama
+
+include:
+  - path: Airflow/compose.airflow.yaml
+    project_directory: Airflow/
+    env_file: Airflow/.env
+
+  - path: DataWarehouse/compose.datawarehouse.yaml
+    project_directory: DataWarehouse/
+    env_file: Airflow/.env
+
+networks:
+  INSARAMA_NET:
+    name: insarama_net
+    driver: bridge # simple isolation

@@ -1,0 +1,18 @@
+services:
+  insm_postgres_data_warehouse:
+    image: postgres:16
+    environment:
+      DW_POSTGRES_USER: ${DW_POSTGRES_USER}
+      DW_POSTGRES_PASSWORD: ${DW_POSTGRES_PASSWORD}
+      DW_POSTGRES_DB: ${DW_POSTGRES_DB}
+    command: ["-p", "${DW_POSTGRES_PORT}"]
+    ports:
+      - "${DW_POSTGRES_PORT}:${DW_POSTGRES_PORT}"
+    healthcheck:
+      test: ["CMD", "pg_isready", "-U", "${DW_POSTGRES_USER}"]
+      interval: 10s
+      retries: 5
+      start_period: 5s
+    restart: always
+    networks:
+      - INSARAMA_NET
