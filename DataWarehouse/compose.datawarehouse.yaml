@@ -1,6 +1,7 @@
 services:
   insm_postgres_data_warehouse:
     image: postgres:16
+    container_name: insm_postgres_data_warehouse
     environment:
       POSTGRES_USER: ${DW_POSTGRES_USER}
       POSTGRES_PASSWORD: ${DW_POSTGRES_PASSWORD}
@@ -12,6 +13,5 @@ services:
       - INSARAMA_NET
 
 networks:
-  INSARAMA_NET:
-    name: ${INSARAMA_NET}
-    driver: bridge
+  insarama_net:
+    external: true 
