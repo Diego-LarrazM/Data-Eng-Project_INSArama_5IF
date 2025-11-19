@@ -4,9 +4,38 @@
 # start-compose.sh
 # ------------------------------
 
+echo "[ Reading ENVs... ]"
+
+if [ -f .env ]; then
+  while IFS= read -r line; do
+    # Trim leading/trailing whitespace
+    line=$(echo "$line" | sed -e 's/^[[:space:]]*//' -e 's/[[:space:]]*$//')
+    # Skip empty lines or lines starting with #
+    [ -z "$line" ] && continue
+    echo "$line" | grep -q '^#' && continue
+    # Remove inline comments (anything after #)
+    line=$(echo "$line" | sed 's/[[:space:]]*#.*$//')
+    echo $line
+    # Export the variable
+    export "$line"
+  done < .env
+fi
+echo "\n"
+
+echo "[ Starting postgres docker compose... ]"
+
+docker compose -f compose.datawarehouse.yaml up -d 
+if [ $? -ne 0 ]; then
+  echo "\n<@@ Docker compose failed for $DW_POSGRES_HOST... @@>"
+  exit 1
+fi
+
+echo "\n"
+
+
 echo "[ Starting mongo docker container... ]"
 
-docker run -d --name "$MONGO_HOST_NAME" --network "$INSARAMA_NET" mongo:7.0 --replSet "$MONGO_RSET_NAME" --bind_ip_all --port $MONGO_PORT
+docker run -d --name "$MONGO_HOST_NAME" --network "$INSARAMA_NET" -p "$MONGO_PORT:$MONGO_PORT" mongo:7.0 --replSet "$MONGO_RSET_NAME" --bind_ip_all --port $MONGO_PORT
 if [ $? -ne 0 ] ; then
   echo "\n<@@ Docker run failed for $MONGO_HOST_NAME... @@>"
   exit 1
@@ -31,7 +60,7 @@ while [ "$i" -le "$MONGO_HEALTHCHECK_RETRIES" ]; do
   sleep 2
 
   i=$((i + 1))
-  
+
 done
 
 if [ "$OK" != "1" ]; then
@@ -42,7 +71,7 @@ fi
 echo "\n"
 
 echo "[ Setuing Up Replica Set: '$MONGO_HOST_NAME' ]\n"
-# Setup Replica Set
+
 docker exec -i $MONGO_HOST_NAME mongosh --authenticationDatabase admin --quiet --eval \
  "try { printjson(rs.status()) }\
   catch (err) {\
