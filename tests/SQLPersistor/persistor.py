@@ -2,7 +2,7 @@ from contextlib import contextmanager
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from models.base import DeclarativeMeta, ModelType
-from utils.execution import *
+from execution import *
 
 class Persistor:
 

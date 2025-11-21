@@ -1,30 +1,31 @@
+https://mermaid.live/edit
+
 ```mermaid
 ---
 title: Media Review Star Schema
 ---
 erDiagram
-FACT_REVIEW {
+FACT_REVIEWS {
     INT Reviewer_ID
     INT Time_ID
     INT Platform_ID
     INT MediaInfo_ID
-    INT Franchise_ID
+    STRING FranchiseTitle(Degenerate)
     INT RatingScore
 }
 
 DIM_MEDIA_INFO {
     INT MediaInfo_ID
-    String PrimaryTitle
-    String TitleLanguage
-    String OriginalTitle
-    String MediaType
+    STRING PrimaryTitle
+    STRING TitleLanguage
+    STRING OriginalTitle
+    STRING MediaType
     NUMERIC Sales(Bonus)
     NUMERIC Duration
-    String Description
+    STRING Description
     DATE ReleaseDate
-    INT PEGI_MPARating(SemiBonus)
+    INT PEGI_MPA_Rating(SemiBonus)
 }
-
 
 
 BRIDGE_MEDIA_COMPANY{
@@ -35,8 +36,8 @@ BRIDGE_MEDIA_COMPANY{
 
 COMPANIES {
     INT Company_ID
-    String CompanyName
-    NUMERIC NetWorth(Bonus)
+    STRING CompanyName
+    NUMERIC Networth(Bonus)
 }
 
 BRIDGE_MEDIA_GENRE{
@@ -46,27 +47,27 @@ BRIDGE_MEDIA_GENRE{
 }
 GENRES {
     INT Genre_ID
-    String GenreTitle
+    STRING GenreTitle
 }
 
-BRIDGE_MEDIA_ROLES {
+BRIDGE_MEDIA_ROLE {
     INT MediaInfo_ID
-    INT Roles_ID
+    INT Role_ID
     NUMERIC Weight
 }
 
 ROLES{
     INT Role_ID
-    String Name
-    String Role
-    String PlayMethod
+    STRING Name
+    STRING Role
+    STRING PlayMethod
 }
 
 DIM_REVIEWER {
     INT Reviewer_ID
-    String ReviewerUsername
+    STRING ReviewerUsername
     BOOL IsCritic
-    String Association
+    STRING Association
 }
 
 DIM_TIME {
@@ -78,30 +79,22 @@ DIM_TIME {
 
 DIM_PLATFORM {
     INT Platform_ID
-    String PlatformName
-    String PlatformType
-}
-
-DIM_FRANCHISE  { 
-     INT Franchise_ID
-     String FranchiseTitle
-     BOOL IsFinished(BONUS)
+    STRING PlatformName
+    STRING PlatformType
 }
 
 
 
-DIM_REVIEWER ||--o{ FACT_REVIEW : reviewed_by
-DIM_MEDIA_INFO ||--o{ FACT_REVIEW : reviews
-DIM_TIME ||--o{ FACT_REVIEW : posted_at
-DIM_PLATFORM ||--o{ FACT_REVIEW : accessed_media_from
-DIM_FRANCHISE ||--o{ FACT_REVIEW : media_from
-
+DIM_REVIEWER ||--o{ FACT_REVIEWS : reviewed_by
+DIM_MEDIA_INFO ||--o{ FACT_REVIEWS : reviews
+DIM_TIME ||--o{ FACT_REVIEWS : posted_at
+DIM_PLATFORM ||--o{ FACT_REVIEWS : accessed_media_from
 
 DIM_MEDIA_INFO }o--o{ BRIDGE_MEDIA_GENRE : has_genres
 BRIDGE_MEDIA_GENRE }o--o{ GENRES : genre
 DIM_MEDIA_INFO }o--o{ BRIDGE_MEDIA_COMPANY : handled_by
 BRIDGE_MEDIA_COMPANY }o--o{ COMPANIES : company
-DIM_MEDIA_INFO }o--o{ BRIDGE_MEDIA_ROLES : roles_involved
-BRIDGE_MEDIA_ROLES }o--o{ ROLES : role
+DIM_MEDIA_INFO }o--o{ BRIDGE_MEDIA_ROLE : roles_involved
+BRIDGE_MEDIA_ROLE }o--o{ ROLES : role
 
 ```
