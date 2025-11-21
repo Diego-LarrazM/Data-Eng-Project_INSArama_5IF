@@ -27,9 +27,9 @@ MONGO_URL = f"mongodb://{credentials}{R_HOST}:{R_PORT}/"
 
 # Write
 POSTGRES_HOST = "localhost"#os.environ.get('POSTGRES_HOST')
-POSTGRES_DB_URL = f"postgresql+psycopg2://{os.environ.get('POSTGRES_USER')}:{os.environ.get('POSTGRES_PASSWORD')}@{POSTGRES_HOST}:{os.environ.get('POSTGRES_PORT')}/{os.environ.get("POSTGRES_DB")}"
+POSTGRES_DB_URL = f"postgresql+psycopg2://{os.environ.get('DW_POSTGRES_USER')}:{os.environ.get('DW_POSTGRES_PASSWORD')}@{POSTGRES_HOST}:{os.environ.get('DW_POSTGRES_COM_PORT')}/{os.environ.get("DW_POSTGRES_DB")}"
 
-POSTGRES_LOAD_BATCH_SIZE= int(os.environ.get("POSTGRES_LOAD_BATCH_SIZE", 100))
+POSTGRES_LOAD_BATCH_SIZE= int(os.environ.get("DW_POSTGRES_LOAD_BATCH_SIZE", 100))
 
 COLLECTIONS = [  # ORDER MATTERS WITH RELATIONSHIPS !
     # Bridged Entities

@@ -1,0 +1,15 @@
+name: insarama
+
+include:
+  - path: Airflow/compose.airflow.yaml
+    project_directory: Airflow/
+    env_file: Airflow/.env
+  - path: DataWarehouse/compose.datawarehouse.yaml
+    project_directory: DataWarehouse/
+    env_file: DataWarehouse/.env
+
+networks:
+  INSARAMA_NET:
+    name: insarama_net
+    driver: bridge  # simple isolation for usecase
+    external: false # enables docker compose down to remove named net

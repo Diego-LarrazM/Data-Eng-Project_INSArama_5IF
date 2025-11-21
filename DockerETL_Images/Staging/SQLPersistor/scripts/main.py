@@ -20,10 +20,11 @@ if R_USERNAME and R_PASSWORD:
 MONGO_URL = f"mongodb://{credentials}{R_HOST}:{R_PORT}/"
 
 # Write
-POSTGRES_HOST = os.environ.get('POSTGRES_HOST')
-POSTGRES_DB_URL = f"postgresql+psycopg2://{os.environ.get('POSTGRES_USER')}:{os.environ.get('POSTGRES_PASSWORD')}@{POSTGRES_HOST}:{os.environ.get('POSTGRES_PORT')}/{os.environ.get("POSTGRES_DB")}"
+DW_POSTGRES_HOST = os.environ.get('DW_POSTGRES_HOST')
+DW_POSTGRES_PORT = 5432 # Hardcoded
+DW_POSTGRES_DB_URL = f"postgresql+psycopg2://{os.environ.get('DW_POSTGRES_USER')}:{os.environ.get('DW_POSTGRES_PASSWORD')}@{DW_POSTGRES_HOST}:{DW_POSTGRES_PORT}/{os.environ.get("DW_POSTGRES_DB")}"
 
-POSTGRES_LOAD_BATCH_SIZE= int(os.environ.get("POSTGRES_LOAD_BATCH_SIZE", 100))
+DW_POSTGRES_LOAD_BATCH_SIZE= int(os.environ.get("DW_POSTGRES_LOAD_BATCH_SIZE", 100))
 
 COLLECTIONS = [  # ORDER MATTERS WITH RELATIONSHIPS !
     # Bridged Entities
@@ -59,10 +60,10 @@ if __name__ == "__main__":
     
     print("<-- MongoExtractorFactory connected -->\n")
     
-    print(f"[ Connecting to (Postgres): <{POSTGRES_DB_URL}>... ]")
+    print(f"[ Connecting to (Postgres): <{DW_POSTGRES_DB_URL}>... ]")
     
     
-    persistor = Persistor(sqlw_conn_url=POSTGRES_DB_URL)
+    persistor = Persistor(sqlw_conn_url=DW_POSTGRES_DB_URL)
     if persistor.create_tables(ModelsBase):
         raise Exception("<@@ Pipeline Stopped...(FAIL) @@>")
     
@@ -71,13 +72,13 @@ if __name__ == "__main__":
 
     print(f"[ Loading to DataWarehouse ]")
     print(f"src   : <{MONGO_URL}>")
-    print(f"target: <{POSTGRES_DB_URL}>\n")
+    print(f"target: <{DW_POSTGRES_DB_URL}>\n")
     
     
     fail_counter = 0
     counter = 0
     for collection_name, model in COLLECTIONS:
-      for object in ex_factory(collection_name, model, batch_size=POSTGRES_LOAD_BATCH_SIZE):
+      for object in ex_factory(collection_name, model, batch_size=DW_POSTGRES_LOAD_BATCH_SIZE):
           fail_counter+=persistor.persist(object)
           counter+=1
           

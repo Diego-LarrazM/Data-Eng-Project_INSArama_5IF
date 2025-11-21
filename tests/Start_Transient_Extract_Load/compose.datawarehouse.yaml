@@ -1,0 +1,17 @@
+services:
+  insm_postgres_data_warehouse:
+    image: postgres:16
+    environment:
+      POSTGRES_USER: ${DW_POSTGRES_USER}
+      POSTGRES_PASSWORD: ${DW_POSTGRES_PASSWORD}
+      POSTGRES_DB: ${DW_POSTGRES_DB}
+    ports:
+      - "${DW_POSTGRES_COM_PORT}:5432"
+    restart: always
+    networks:
+      - INSARAMA_NET
+
+networks:
+  INSARAMA_NET:
+    name: ${INSARAMA_NET}
+    driver: bridge

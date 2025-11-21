@@ -69,12 +69,12 @@ with DAG(
             "MONGO_MEDIA_COLLECTION": os.getenv("MONGO_MEDIA_COLLECTION"),
             "MONGO_RSET_NAME": os.getenv("MONGO_RSET_NAME"),
             # Postgres
-            "POSTGRES_HOST": os.getenv("POSTGRES_HOST"),
-            "POSTGRES_PORT": os.getenv("POSTGRES_PORT"),
-            "POSTGRES_DB": os.getenv("POSTGRES_DB"),
-            "POSTGRES_USER": os.getenv("POSTGRES_USER"),
-            "POSTGRES_PASSWORD": os.getenv("POSTGRES_PASSWORD"),
-            "POSTGRES_LOAD_BATCH_SIZE": os.getenv("POSTGRES_LOAD_BATCH_SIZE")
+            "DW_POSTGRES_HOST": os.getenv("DW_POSTGRES_HOST"),
+            "DW_POSTGRES_PORT": os.getenv("DW_POSTGRES_PORT"),
+            "DW_POSTGRES_DB": os.getenv("DW_POSTGRES_DB"),
+            "DW_POSTGRES_USER": os.getenv("DW_POSTGRES_USER"),
+            "DW_POSTGRES_PASSWORD": os.getenv("DW_POSTGRES_PASSWORD"),
+            "DW_POSTGRES_LOAD_BATCH_SIZE": os.getenv("DW_POSTGRES_LOAD_BATCH_SIZE")
         }
     )
     
