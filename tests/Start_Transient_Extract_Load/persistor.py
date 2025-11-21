@@ -1,14 +1,15 @@
 from contextlib import contextmanager
 from sqlalchemy import create_engine
-from sqlalchemy.orm import sessionmaker
+from sqlalchemy.orm import Session
 from models.base import DeclarativeMeta, ModelType
 from execution import *
 
 class Persistor:
 
     @contextmanager # to be used with WITH statement easily
-    def session_scope(self):
-        session = self.session_factory()
+    def session_scope(self, session: Session = None) -> Session:
+        session = session or Session(self.engine)
+        session.begin()
         try:
             yield session
             session.commit()
@@ -22,7 +23,6 @@ class Persistor:
         # Set up PostgreSQL connection
         self.r_url = sqlw_conn_url
         self.engine = create_engine(sqlw_conn_url, echo=False)
-        self.session_factory = sessionmaker(bind=self.engine)
     
     @safe_execute
     def create_tables(self, base: DeclarativeMeta) -> ExitCode:
@@ -30,13 +30,13 @@ class Persistor:
         return SUCCESS
 
     @safe_execute
-    def persist(self, obj: ModelType) -> ExitCode:
-        with self.session_scope() as session:
-            session.add(obj)
+    def persist(self, obj: ModelType, session: Session = None) -> ExitCode:
+        with self.session_scope(session) as s:
+            s.add(obj)
         return SUCCESS
     
     @safe_execute
-    def persist_all(self, obj_list: list[ModelType]) -> ExitCode:
-        with self.session_scope() as session:
-            session.add_all(obj_list)
+    def persist_all(self, obj_list: list[ModelType], session: Session = None) -> ExitCode:
+        with self.session_scope(session) as s:
+            s.add_all(obj_list)
         return SUCCESS
