@@ -15,19 +15,25 @@ POSTGRES_DB_URL = f"postgresql+psycopg2://{os.environ.get('DW_POSTGRES_USER')}:{
 POSTGRES_LOAD_BATCH_SIZE= int(os.environ.get("DW_POSTGRES_LOAD_BATCH_SIZE", 100))
 
 example_data_all = [
-    GenreORM(name="all1"),
-    GenreORM(name="all2"),
-    GenreORM(name="all3"),
+    GenreORM(GenreTitle="all1"),
+    GenreORM(GenreTitle="all2"),
+    GenreORM(GenreTitle="all3"),
+]
+
+example_data_all2 = [
+    GenreORM(GenreTitle="all4"),
+    GenreORM(GenreTitle="all5"),
+    GenreORM(GenreTitle="all6"),
 ]
 
 example_data = [
-    GenreORM(name="one1"),
-    GenreORM(name="one2"),
+    GenreORM(GenreTitle="one1"),
+    GenreORM(GenreTitle="one2"),
 ]
 
 error_data = [
-    GenreORM(name="shouldNotAppear1"),
-    GenreORM(name=None),  # This will cause an integrity error (name cannot be null)
+    GenreORM(GenreTitle="shouldNotAppear1"),
+    GenreORM(GenreTitle=None),  # This will cause an integrity error (name cannot be null)
 ]
 
 # ------------- < main > -------------
@@ -47,19 +53,38 @@ if __name__ == "__main__":
     print(f"target: <{POSTGRES_DB_URL}>\n")
     print(f"(Errors raised are normal, it's part of the test)\n")
 
-    
     with persistor.session_scope() as s:
-        persistor.persist_all(example_data_all, session=s)
+        code = persistor.persist_all(example_data_all, session=s)
+        print(f"Insert example_data_all: {persistor.last_execution_status}=={code} ---------------------------------")
         persistor.persist_all(error_data, session=s) # This will raise an integrity error and abort the transaction
     
-    persistor.persist(example_data[0])
+    print(f"First_transaction: {persistor.last_execution_status} ---------------------------------\n")
+    
+    code = persistor.persist(example_data[0])
+
+    print(f"Second_transaction: {persistor.last_execution_status} == {code} ---------------------------------\n")
+
+    with persistor.session_scope() as s:
+        code = persistor.persist(example_data[1], session=s)
+        print(f"Insert example_data[1]: {persistor.last_execution_status}=={code} ---------------------------------")
+        persistor.persist_all(error_data, session=s) # This will raise an integrity error and abort the transaction
+        print("------------------------ not entered here due to error above -----------------------------")
+        persistor.persist_all(example_data) # this isn't in the same session as above BUUUUT it won't be executed due to the error above (Exception raised)
+    
+    code = persistor.persist(error_data[1])  # This will raise an integrity error
+    print(f"Third_transaction: {persistor.last_execution_status} == {code} ---------------------------------\n")
+
+    code = persistor.persist_all(example_data_all)
+    print(f"Fourth_transaction: {persistor.last_execution_status} == {code} ---------------------------------\n")
 
     with persistor.session_scope() as s:
         persistor.persist(example_data[1], session=s)
-        persistor.persist_all(error_data, session=s) # This will raise an integrity error and abort the transaction
-        persistor.persist_all(example_data) # this isn't in the same session as above thus not aborted
+        print(f"Insert example_data[1]: {persistor.last_execution_status}=={code}---------------------------------")
+        persistor.persist_all(example_data_all2, session=s)
+        print(f"Insert example_data_all2: {persistor.last_execution_status}=={code}---------------------------------")
     
-    persistor.persist(error_data[1])  # This will raise an integrity error
+    print(f"Fifth_transaction: {persistor.last_execution_status} ---------------------------------\n")
+    
 
     # Verify results:
     # There should be only 5 records in the GenreORM table:
