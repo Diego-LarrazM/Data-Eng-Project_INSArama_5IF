@@ -101,5 +101,5 @@ if __name__ == "__main__":
             counter+=1
           
     
-    print(f"\n---------- < Persisted successfully {counter-fail_counter}/{counter} rows > ----------")
+    print(f"\n<-- Persisted successfully {counter-fail_counter}/{counter} rows | Transaction status: {persistor.last_execution_status} -->")
     
