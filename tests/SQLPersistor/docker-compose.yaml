@@ -10,7 +10,7 @@ services:
       - "${DW_POSTGRES_COM_PORT}:5432"
     restart: always
     networks:
-      - INSARAMA_NET
+      - TEST_NET
   
   pgadmin:
     image: elestio/pgadmin
@@ -20,9 +20,8 @@ services:
     ports:
       - "5050:80" # type localhost:5050 to your browser to access the UI
     networks:
-      - INSARAMA_NET
+      - TEST_NET
 
 networks:
-  INSARAMA_NET:
-    name: ${INSARAMA_NET}
+  TEST_NET:
     driver: bridge

@@ -380,13 +380,14 @@ services:
       <<: *airflow-common-depends-on
       airflow-init:
         condition: service_completed_successfully
-  pgadmin:
-    container_name: airflow_pgadmin_server
-    image: elestio/pgadmin
-    environment:
-      PGADMIN_DEFAULT_EMAIL: ${AIRFLOW_PGADMIN_DEFAULT_EMAIL}
-      PGADMIN_DEFAULT_PASSWORD: ${AIRFLOW_PGADMIN_DEFAULT_PASSWORD}
-    ports:
-      - "${AIRFLOW_PGADMIN_PORT}:80" # type localhost:5050 to your browser to access the UI
-    networks:
-      - INSARAMA_NET
+        
+  # pgadmin:
+  #   container_name: airflow_pgadmin_server
+  #   image: elestio/pgadmin
+  #   environment:
+  #     PGADMIN_DEFAULT_EMAIL: ${AIRFLOW_PGADMIN_DEFAULT_EMAIL}
+  #     PGADMIN_DEFAULT_PASSWORD: ${AIRFLOW_PGADMIN_DEFAULT_PASSWORD}
+  #   ports:
+  #     - "${AIRFLOW_PGADMIN_PORT}:80" # type localhost:5050 to your browser to access the UI
+  #   networks:
+  #     - INSARAMA_NET

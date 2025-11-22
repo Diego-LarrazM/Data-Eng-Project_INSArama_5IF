@@ -1,16 +1,14 @@
-# < Start - Transient - Extract - Load >
+# < SQLPersistor >
 
 - To run (Linux):
 
-1. `.../tests/Start_Transient_Extract_Load> source setup.sh`
-> ... logs
-> 
-> ---------- < Transient Server Running > ----------
+1. `.../tests/SQLPersistor> docker compose up -d`
 2. `(Start python venv however you prefer)`
-3. `(venv) .../tests/Start_Transient_Extract_Load> python test.py`
+3. `(venv) .../tests/SQLPersistor> python test.py`
 > ... logs
 > 
-> ---------- < Persisted successfully N/N rows > ----------
+> ---------- < Test completed successfully > ----------
+
 
 - PgAdmin connexion:
 

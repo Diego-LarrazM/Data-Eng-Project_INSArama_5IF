@@ -94,11 +94,12 @@ if __name__ == "__main__":
     
     fail_counter = 0
     counter = 0
-    for collection_name, model in COLLECTIONS:
-      for object in ex_factory(collection_name, model, batch_size=POSTGRES_LOAD_BATCH_SIZE):
-          fail_counter+=persistor.persist(object)
-          counter+=1
+    with persistor.session_scope() as session:
+      for collection_name, model in COLLECTIONS:
+        for object in ex_factory(collection_name, model, batch_size=POSTGRES_LOAD_BATCH_SIZE):
+            fail_counter+=persistor.persist(object, session)
+            counter+=1
           
     
-    print(f"\n---------- < Persisted successfully {counter-fail_counter}/{counter} rows > ----------")
+    print(f"\n<-- Persisted successfully {counter-fail_counter}/{counter} rows | Transaction status: {persistor.last_execution_status} -->")
     
