@@ -9,10 +9,3 @@ services:
     ports:
       - "${DW_POSTGRES_COM_PORT}:5432"
     restart: always
-    networks:
-      - INSARAMA_NET
-
-networks:
-  INSARAMA_NET:
-    name: ${INSARAMA_NET}
-    driver: bridge
