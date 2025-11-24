@@ -1,0 +1,174 @@
+{
+  "COMPANIES": [
+    {"Company_ID": 1, "CompanyName": "Starlight Studios"},
+    {"Company_ID": 2, "CompanyName": "Nebula Interactive"},
+    {"Company_ID": 3, "CompanyName": "AetherWorks"},
+    {"Company_ID": 4, "CompanyName": "PrimeMotion Pictures"},
+    {"Company_ID": 5, "CompanyName": "Quantum Forge"}
+  ],
+
+  "GENRES": [
+    {"Genre_ID": 1, "GenreTitle": "Action"},
+    {"Genre_ID": 2, "GenreTitle": "Drama"},
+    {"Genre_ID": 3, "GenreTitle": "Sci-Fi"},
+    {"Genre_ID": 4, "GenreTitle": "Mystery"},
+    {"Genre_ID": 5, "GenreTitle": "Adventure"}
+  ],
+
+  "ROLES": [
+    {"Role_ID": 5001, "PersonName": "Alicia Trent", "RoleTitle": "Lead Actress", "PlayMethod": "Live Action"},
+    {"Role_ID": 5002, "PersonName": "Kazuo Ishida", "RoleTitle": "Voice Actor", "PlayMethod": "Animation"},
+    {"Role_ID": 5100, "PersonName": "Mark Holloway", "RoleTitle": "Director", "PlayMethod": "Production"},
+    {"Role_ID": 5111, "PersonName": "Claire Duval", "RoleTitle": "Cinematographer", "PlayMethod": "Crew"},
+    {"Role_ID": 5200, "PersonName": "Rex Vaughn", "RoleTitle": "Lead Actor", "PlayMethod": "Live Action"}
+  ],
+
+  "DIM_MEDIA_INFO": [
+    {
+      "MediaInfo_ID": 101,
+      "PrimaryTitle": "Galactic Odyssey: Dawn",
+      "Titlelanguage": "English",
+      "OriginalTitle": "Galactic Odyssey: Dawn",
+      "MediaType": "Game",
+      "ReleaseDate": "2020-05-01T00:00:00",
+      "Duration": "42.5",
+      "Description": "A space-faring RPG following the rise of a new star captain.",
+      "PEGI_MPA_Rating": 12
+    },
+    {
+      "MediaInfo_ID": 102,
+      "PrimaryTitle": "Echoes of Time",
+      "Titlelanguage": "English",
+      "OriginalTitle": "Echoes of Time",
+      "MediaType": "Movie",
+      "ReleaseDate": "2018-11-12T00:00:00",
+      "Duration": "128.0",
+      "Description": "A drama exploring parallel timelines and human connection.",
+      "PEGI_MPA_Rating": 16
+    },
+    {
+      "MediaInfo_ID": 205,
+      "PrimaryTitle": "Steel Battalion",
+      "Titlelanguage": "Japanese",
+      "OriginalTitle": "鋼鉄大隊",
+      "MediaType": "Anime",
+      "ReleaseDate": "2022-02-15T00:00:00",
+      "Duration": "24.0",
+      "Description": "Mechs, war, and the bonds between pilots.",
+      "PEGI_MPA_Rating": 13
+    },
+    {
+      "MediaInfo_ID": 333,
+      "PrimaryTitle": "Festival of Echoes",
+      "Titlelanguage": "French",
+      "OriginalTitle": "Festival d'Échos",
+      "MediaType": "Movie",
+      "ReleaseDate": "2019-08-30T00:00:00",
+      "Duration": "102.0",
+      "Description": "A surreal journey through memory and identity.",
+      "PEGI_MPA_Rating": 15
+    },
+    {
+      "MediaInfo_ID": 404,
+      "PrimaryTitle": "Quantum Racer",
+      "Titlelanguage": "English",
+      "OriginalTitle": "Quantum Racer",
+      "MediaType": "Game",
+      "ReleaseDate": "2021-12-01T00:00:00",
+      "Duration": "15.0",
+      "Description": "High-speed racing across multidimensional tracks.",
+      "PEGI_MPA_Rating": 7
+    }
+  ],
+
+  "DIM_PLATFORM": [
+    {"Platform_ID": 10, "PlatformName": "Steam", "PlatformType": "PC"},
+    {"Platform_ID": 11, "PlatformName": "PlayStation 5", "PlatformType": "Console"},
+    {"Platform_ID": 12, "PlatformName": "Nintendo Switch", "PlatformType": "Console"},
+    {"Platform_ID": 13, "PlatformName": "Xbox Series X", "PlatformType": "Console"},
+    {"Platform_ID": 14, "PlatformName": "Prime Video", "PlatformType": "Streaming"}
+  ],
+
+  "DIM_REVIEWER": [
+    {"Reviewer_ID": 9001, "ReviewerUsername": "StarCritic", "IsCritic": true, "Association": "IGN"},
+    {"Reviewer_ID": 9002, "ReviewerUsername": null, "IsCritic": false, "Association": "User"},
+    {"Reviewer_ID": 9003, "ReviewerUsername": "CinemaOracle", "IsCritic": true, "Association": "Rotten Tomatoes"},
+    {"Reviewer_ID": 9004, "ReviewerUsername": "PlayTesterX", "IsCritic": false, "Association": "User"},
+    {"Reviewer_ID": 9005, "ReviewerUsername": "MetaMind", "IsCritic": true, "Association": "Metacritic"}
+  ],
+
+  "DIM_TIME": [
+    {"Time_ID": 1, "Year": 2020, "Month": 5, "Day": 1},
+    {"Time_ID": 2, "Year": 2018, "Month": 11, "Day": 12},
+    {"Time_ID": 3, "Year": 2022, "Month": 2, "Day": 15},
+    {"Time_ID": 4, "Year": 2019, "Month": 8, "Day": 30},
+    {"Time_ID": 5, "Year": 2021, "Month": 12, "Day": 1}
+  ],
+
+  "BRIDGE_MEDIA_COMPANY": [
+    {"MediaInfo_ID": 101, "Company_ID": 1, "Weight": "1.00"},
+    {"MediaInfo_ID": 102, "Company_ID": 2, "Weight": "1.00"},
+    {"MediaInfo_ID": 205, "Company_ID": 3, "Weight": "1.00"},
+    {"MediaInfo_ID": 333, "Company_ID": 4, "Weight": "1.00"},
+    {"MediaInfo_ID": 404, "Company_ID": 5, "Weight": "1.00"}
+  ],
+
+  "BRIDGE_MEDIA_GENRE": [
+    {"MediaInfo_ID": 101, "Genre_ID": 3, "Weight": "0.50"},
+    {"MediaInfo_ID": 101, "Genre_ID": 5, "Weight": "0.50"},
+    {"MediaInfo_ID": 205, "Genre_ID": 1, "Weight": "1.00"},
+    {"MediaInfo_ID": 333, "Genre_ID": 4, "Weight": "1.00"},
+    {"MediaInfo_ID": 404, "Genre_ID": 2, "Weight": "1.00"}
+  ],
+
+  "BRIDGE_MEDIA_ROLE": [
+    {"MediaInfo_ID": 101, "Role_ID": 5001, "Weight": "1.00"},
+    {"MediaInfo_ID": 102, "Role_ID": 5100, "Weight": "1.00"},
+    {"MediaInfo_ID": 205, "Role_ID": 5002, "Weight": "1.00"},
+    {"MediaInfo_ID": 333, "Role_ID": 5111, "Weight": "1.00"},
+    {"MediaInfo_ID": 404, "Role_ID": 5200, "Weight": "1.00"}
+  ],
+
+  "FACT_REVIEWS": [
+    {
+      "Reviewer_ID": 9001,
+      "Time_ID": 1,
+      "Platform_ID": 10,
+      "MediaInfo_ID": 101,
+      "FranchiseTitle": "Galactic Odyssey",
+      "RatingScore": 88
+    },
+    {
+      "Reviewer_ID": 9002,
+      "Time_ID": 2,
+      "Platform_ID": 14,
+      "MediaInfo_ID": 102,
+      "FranchiseTitle": "Echoes Saga",
+      "RatingScore": 92
+    },
+    {
+      "Reviewer_ID": 9002,
+      "Time_ID": 3,
+      "Platform_ID": 12,
+      "MediaInfo_ID": 205,
+      "FranchiseTitle": "Steel Battalion",
+      "RatingScore": 76
+    },
+    {
+      "Reviewer_ID": 9004,
+      "Time_ID": 4,
+      "Platform_ID": 14,
+      "MediaInfo_ID": 333,
+      "FranchiseTitle": "Festival Series",
+      "RatingScore": 81
+    },
+    {
+      "Reviewer_ID": 9005,
+      "Time_ID": 5,
+      "Platform_ID": 11,
+      "MediaInfo_ID": 404,
+      "FranchiseTitle": "Quantum Racer",
+      "RatingScore": 84
+    }
+  ]
+}

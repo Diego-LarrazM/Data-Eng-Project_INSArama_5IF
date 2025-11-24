@@ -1,0 +1,13 @@
+services:
+  insm_postgres_data_warehouse: # MUST MATCH DW_POSTGRES_HOST in .env
+    image: postgres:16
+    container_name: ${DW_POSTGRES_HOST}
+    environment:
+      POSTGRES_USER: ${DW_POSTGRES_USER}
+      POSTGRES_PASSWORD: ${DW_POSTGRES_PASSWORD}
+      POSTGRES_DB: ${DW_POSTGRES_DB}
+    ports:
+      - "${DW_POSTGRES_COM_PORT}:5432"
+    restart: always
+    networks:
+      - INSARAMA_NET

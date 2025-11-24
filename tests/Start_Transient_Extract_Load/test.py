@@ -1,13 +1,19 @@
-import os
 from urllib.parse import quote_plus
 
-from mongo_extractor_factory import MongoExtractorFactory
 from persistor import Persistor
-from models import * # Importe TOUS les ORM, NECESSAIRE POUR 'create_tables'
+from mongo_extractor_factory import MongoExtractorFactory
+from mongo_loader import MongoLoader
+from models import *
+
+import os
+from dotenv import load_dotenv
+
+dotenv_path = os.path.join(os.path.dirname(__file__), '.env')
+load_dotenv(dotenv_path)
 
 # ------------- < Constants > -------------
 # Read
-R_HOST = os.environ.get("MONGO_HOST_NAME")
+R_HOST = "localhost"#os.environ.get("MONGO_HOST_NAME")
 R_PORT = int(os.environ.get("MONGO_PORT"))
 R_USERNAME = ""#os.environ.get("MONGO_USERNAME")
 R_PASSWORD = ""#os.environ.get("MONGO_PASSWORD")
@@ -20,11 +26,10 @@ if R_USERNAME and R_PASSWORD:
 MONGO_URL = f"mongodb://{credentials}{R_HOST}:{R_PORT}/"
 
 # Write
-DW_POSTGRES_HOST = os.environ.get('DW_POSTGRES_HOST')
-DW_POSTGRES_PORT = 5432 # Hardcoded
-DW_POSTGRES_DB_URL = f"postgresql+psycopg2://{os.environ.get('DW_POSTGRES_USER')}:{os.environ.get('DW_POSTGRES_PASSWORD')}@{DW_POSTGRES_HOST}:{DW_POSTGRES_PORT}/{os.environ.get("DW_POSTGRES_DB")}"
+POSTGRES_HOST = "localhost"#os.environ.get('POSTGRES_HOST')
+POSTGRES_DB_URL = f"postgresql+psycopg2://{os.environ.get('DW_POSTGRES_USER')}:{os.environ.get('DW_POSTGRES_PASSWORD')}@{POSTGRES_HOST}:{os.environ.get('DW_POSTGRES_COM_PORT')}/{os.environ.get("DW_POSTGRES_DB")}"
 
-DW_POSTGRES_LOAD_BATCH_SIZE= int(os.environ.get("DW_POSTGRES_LOAD_BATCH_SIZE", 100))
+POSTGRES_LOAD_BATCH_SIZE= int(os.environ.get("DW_POSTGRES_LOAD_BATCH_SIZE", 100))
 
 COLLECTIONS = [  # ORDER MATTERS WITH RELATIONSHIPS !
     # Bridged Entities
@@ -45,10 +50,22 @@ COLLECTIONS = [  # ORDER MATTERS WITH RELATIONSHIPS !
     ("FACT_REVIEWS", ReviewsFactORM)
 ]
 
-# ------------- < Pipeline Task > -------------
+# ------------- < main > -------------
 if __name__ == "__main__":
-
     
+    print(f"Connecting(Mongo) to: <{MONGO_URL}>...")
+
+    # Transient load
+    loader = MongoLoader(
+        mongo_conn_url=MONGO_URL,
+        database=MONGO_DB
+    )
+
+    if loader.load_from_json("example.json"):
+        raise Exception("Stopped...")
+    print("Loaded examples.")
+
+    # Extracting and Persisting
     print(f"[ Connecting to (Mongo): <{MONGO_URL}>... ]")
 
 
@@ -60,10 +77,10 @@ if __name__ == "__main__":
     
     print("<-- MongoExtractorFactory connected -->\n")
     
-    print(f"[ Connecting to (Postgres): <{DW_POSTGRES_DB_URL}>... ]")
+    print(f"[ Connecting to (Postgres): <{POSTGRES_DB_URL}>... ]")
     
     
-    persistor = Persistor(sqlw_conn_url=DW_POSTGRES_DB_URL)
+    persistor = Persistor(sqlw_conn_url=POSTGRES_DB_URL)
     if persistor.create_tables(ModelsBase):
         raise Exception("<@@ Pipeline Stopped...(FAIL) @@>")
     
@@ -72,15 +89,17 @@ if __name__ == "__main__":
 
     print(f"[ Loading to DataWarehouse ]")
     print(f"src   : <{MONGO_URL}>")
-    print(f"target: <{DW_POSTGRES_DB_URL}>\n")
+    print(f"target: <{POSTGRES_DB_URL}>\n")
     
     
     fail_counter = 0
     counter = 0
     with persistor.session_scope() as session:
       for collection_name, model in COLLECTIONS:
-        for object in ex_factory(collection_name, model, batch_size=DW_POSTGRES_LOAD_BATCH_SIZE):
-            fail_counter+=persistor.persist(object)
+        for object in ex_factory(collection_name, model, batch_size=POSTGRES_LOAD_BATCH_SIZE):
+            fail_counter+=persistor.persist(object, session)
             counter+=1
-            
+          
+    
     print(f"\n<-- Persisted successfully {counter-fail_counter}/{counter} rows | Transaction status: {persistor.last_execution_status} -->")
+    
