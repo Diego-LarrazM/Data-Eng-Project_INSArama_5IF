@@ -18,10 +18,14 @@ if __name__ == "__main__":
         credentials = f"{quote_plus(USERNAME)}:{quote_plus(PASSWORD)}@"
     mongo_url = f"mongodb://{credentials}{HOST}:{PORT}/"
 
-    extractor = MongoLoader(
+    loader = MongoLoader(
                     mongo_conn_url=mongo_url, 
                     database=MONGO_DB
                 )
     
-    # Image Testing
-    extractor.extract_from_to(f"{DATA_DIR}/test.txt", "test_collection")
+   
+    loader.load_from_csv(f"{DATA_DIR}/title.principals.csv", "imdb_title_principals")
+    loader.load_from_csv(f"{DATA_DIR}/title.crew.csv", "imdb_title_crew")
+    loader.load_from_csv(f"{DATA_DIR}/name.basics.csv", "imdb_name_basics")
+    loader.load_from_csv(f"{DATA_DIR}/title.basics.csv", "imdb_title_basics")
+    

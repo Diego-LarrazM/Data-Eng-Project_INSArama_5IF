@@ -9,3 +9,24 @@
 **/*.py[cod]
 **/*.pyo
 **/*.pyd
+# Ignore logs and plugins folders
+**/logs/* 
+**/plugins/*
+
+# Ignore virtual environment and compiled Python files
+**/venv
+**/.venv
+**/__pycache__/
+**/*.py[cod]
+**/*.pyo
+**/*.pyd
+
+# Ignore data warehouse data files
+**/DataWarehouse/data/*
+**/Grafana/grafana_storage/*
+
+**/IMDBCurler/data/*
+**/IMDBCurler/logs/*
+
+
+**/.DS_Store
