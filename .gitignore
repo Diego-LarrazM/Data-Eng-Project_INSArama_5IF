@@ -9,3 +9,7 @@
 **/*.py[cod]
 **/*.pyo
 **/*.pyd
+
+# Ignore data warehouse data files
+**/DataWarehouse/data/*
+**/Grafana/grafana_storage/*
