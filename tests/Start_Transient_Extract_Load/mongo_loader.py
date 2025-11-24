@@ -21,7 +21,7 @@ class MongoLoader:
         self.db = self.client[database]
 
     @safe_execute
-    @with_transaction
+    #@with_transaction
     def load_from_text(self, file_path: str, collection_name: str, session: ClientSession=None) -> ExitCode:
         if not os.path.exists(file_path):
             raise Exception(f"File {file_path} does not exist.")
@@ -34,7 +34,7 @@ class MongoLoader:
         return SUCCESS
     
     @safe_execute
-    @with_transaction
+    #@with_transaction
     def load_from_json(self, file_path: str, session: ClientSession=None) -> ExitCode: # Does not accept decimals, must be stringyfied
         if not os.path.exists(file_path):
             raise Exception(f"File {file_path} does not exist.")
@@ -49,7 +49,7 @@ class MongoLoader:
         return SUCCESS
     
     @safe_execute
-    @with_transaction
+    #@with_transaction
     def load_single(self, data: dict, collection_name: str, session: ClientSession=None) -> ExitCode:
         if not data:
             raise Exception(f"Data to load not provided.")
@@ -57,7 +57,7 @@ class MongoLoader:
         return SUCCESS
     
     @safe_execute
-    @with_transaction
+    #@with_transaction
     def load_multiple(self, data: list[dict], collection_name: str, session: ClientSession=None) -> ExitCode:
         if not data:
             raise Exception(f"Data to load not provided.")

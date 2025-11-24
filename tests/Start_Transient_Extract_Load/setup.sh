@@ -35,7 +35,7 @@ echo "\n"
 
 echo "[ Starting mongo docker container... ]"
 
-docker run -d --name "$MONGO_HOST_NAME" --network "$INSARAMA_NET" -p "$MONGO_PORT:$MONGO_PORT" mongo:7.0 --replSet "$MONGO_RSET_NAME" --bind_ip_all --port $MONGO_PORT
+docker run -d --name "$MONGO_HOST_NAME" --network "$INSARAMA_NET" -p "$MONGO_PORT:$MONGO_PORT" mongo:7.0 --bind_ip_all --port $MONGO_PORT #--replSet "$MONGO_RSET_NAME"
 if [ $? -ne 0 ] ; then
   echo "\n<@@ Docker run failed for $MONGO_HOST_NAME... @@>"
   exit 1
@@ -70,14 +70,15 @@ fi
 
 echo "\n"
 
-echo "[ Setuing Up Replica Set: '$MONGO_HOST_NAME' ]\n"
+# echo "[ Setuing Up Replica Set: '$MONGO_HOST_NAME' ]\n"
 
-docker exec -i $MONGO_HOST_NAME mongosh --authenticationDatabase admin --quiet --eval \
- "try { printjson(rs.status()) }\
-  catch (err) {\
-    print('Initializing $MONGO_RSET_NAME');\
-    rs.initiate({_id:'$MONGO_RSET_NAME', members:[{_id:0, host:'localhost:$MONGO_PORT'}]});\
-    printjson(rs.status());\
-  }"
-echo "\n"
+# docker exec -i $MONGO_HOST_NAME mongosh --authenticationDatabase admin --quiet --eval \
+#  "try { printjson(rs.status()) }\
+#   catch (err) {\
+#     print('Initializing $MONGO_RSET_NAME');\
+#     rs.initiate({_id:'$MONGO_RSET_NAME', members:[{_id:0, host:'localhost:$MONGO_PORT'}]});\
+#     printjson(rs.status());\
+#   }"
+# echo "\n"
+
 echo "---------- < Transient Server Running > ----------"
