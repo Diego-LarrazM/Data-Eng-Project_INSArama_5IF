@@ -48,4 +48,34 @@ with DAG(
         }
     )
     
+    #with TaskGroup(group_id='Staging') as Staging_Group:
+    postgres_loader = DockerOperator(
+        task_id="postgres_loader",
+        container_name="SQLPersistor",
+        image="insarama/sql_persistor",
+        api_version='auto',
+        auto_remove=True, # To make it disappear once it finishes
+        command="sh -c '/app/scripts/start.sh'",
+        docker_url="unix://var/run/docker.sock",
+        network_mode=os.getenv("INSARAMA_NET"),
+        force_pull=False,
+        environment={
+            # Mongo
+            "MONGO_USERNAME": os.getenv("MONGO_USERNAME"),
+            "MONGO_PASSWORD": os.getenv("MONGO_PASSWORD"),
+            "MONGO_HOST_NAME": os.getenv("MONGO_HOST_NAME"),
+            "MONGO_PORT": os.getenv("MONGO_PORT"),
+            "MONGO_DB": os.getenv("MONGO_DB"),
+            "MONGO_MEDIA_COLLECTION": os.getenv("MONGO_MEDIA_COLLECTION"),
+            "MONGO_RSET_NAME": os.getenv("MONGO_RSET_NAME"),
+            # Postgres
+            "DW_POSTGRES_HOST": os.getenv("DW_POSTGRES_HOST"),
+            "DW_POSTGRES_PORT": os.getenv("DW_POSTGRES_PORT"),
+            "DW_POSTGRES_DB": os.getenv("DW_POSTGRES_DB"),
+            "DW_POSTGRES_USER": os.getenv("DW_POSTGRES_USER"),
+            "DW_POSTGRES_PASSWORD": os.getenv("DW_POSTGRES_PASSWORD"),
+            "DW_POSTGRES_LOAD_BATCH_SIZE": os.getenv("DW_POSTGRES_LOAD_BATCH_SIZE")
+        }
+    )
+    
     run_scrapper
