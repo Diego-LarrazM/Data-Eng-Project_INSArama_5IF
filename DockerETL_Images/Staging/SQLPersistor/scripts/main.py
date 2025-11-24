@@ -74,7 +74,6 @@ if __name__ == "__main__":
     print(f"src   : <{MONGO_URL}>")
     print(f"target: <{DW_POSTGRES_DB_URL}>\n")
     
-    
     fail_counter = 0
     counter = 0
     with persistor.session_scope() as session:

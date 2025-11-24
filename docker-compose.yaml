@@ -2,9 +2,9 @@ name: insarama
 
 include:
   # Data Piepeline Orchestrator
-  # - path: Airflow/compose.airflow.yaml
-  #   project_directory: Airflow/
-  #   env_file: Airflow/.env
+  - path: Airflow/compose.airflow.yaml
+    project_directory: Airflow/
+    env_file: Airflow/.env
   # Data Warehouse
   - path: DataWarehouse/compose.datawarehouse.yaml
     project_directory: DataWarehouse/
