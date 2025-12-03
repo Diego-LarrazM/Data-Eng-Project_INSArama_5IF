@@ -143,6 +143,7 @@ class MetacriticScrapper:
         critics_reviews_base_link = f"critic/{review_p_inf[0]}/{current_element_title}"
         user_reviews_base_link = f"user/{review_p_inf[0]}/{current_element_title}"
 
+        main_page_soup = self._loadPageFromUrl(main_page_link)
         critic_reviews = {}
         user_reviews = {}
 
@@ -154,37 +155,28 @@ class MetacriticScrapper:
         rev = criticsReviewHandler.getReviews()
 
         # return rev  # for testing
-
-        if review_p_inf[1] == "platform":
-            platforms = self._extractPlatforms(
-                self._loadPageFromUrl(main_page_link))
-            for platform_slug in platforms:
+        
+        if review_p_inf[1]: # if contains sections 
+            critics_reviews_base_link += f"{review_p_inf[1]}/"
+            user_reviews_base_link += f"{review_p_inf[1]}/"
+            
+            sections = []
+            if review_p_inf[1] == "platform":
+                sections = platforms = self._extractPlatforms(main_page_soup)
+            elif review_p_inf[1] == "season":
+                sections = self._extractSeasons(main_page_soup)
+            
+            for section in sections: 
                 criticsReviewHandler = MetacriticReviewAPIHandler(
-                    critics_reviews_base_link + f"/platform/{platform_slug}",
+                    critics_reviews_base_link+f"{section}",
                     user_agent=self.USER_AGENT, isCritics=True
                 )
                 userReviewHandler = MetacriticReviewAPIHandler(
-                    user_reviews_base_link + f"/platform/{platform_slug}",
+                    user_reviews_base_link+f"{section}",
                     user_agent=self.USER_AGENT, isCritics=False
                 )
-                critic_reviews[platform_slug] = criticsReviewHandler.getReviews()
-                user_reviews[platform_slug] = userReviewHandler.getReviews()
-
-        elif review_p_inf[1] == "season":
-            main_soup = self._loadPageFromUrl(main_page_link)
-            seasons = self._extractSeasons(main_soup)
-
-            for season_slug in seasons:
-                criticsReviewHandler = MetacriticReviewAPIHandler(
-                    critics_reviews_base_link + f"/season/{season_slug}",
-                    user_agent=self.USER_AGENT, isCritics=True
-                )
-                userReviewHandler = MetacriticReviewAPIHandler(
-                    user_reviews_base_link + f"/season/{season_slug}",
-                    user_agent=self.USER_AGENT, isCritics=False
-                )
-                critic_reviews[season_slug] = criticsReviewHandler.getReviews()
-                user_reviews[season_slug] = userReviewHandler.getReviews()
+                critic_reviews[section] = criticsReviewHandler.getReviews()
+                user_reviews[section] = userReviewHandler.getReviews()
         else:
             # get total items and per each offset until total items or max limit append reviews.
             criticsReviewHandler = MetacriticReviewAPIHandler(
@@ -197,7 +189,7 @@ class MetacriticScrapper:
 
         return MediaInfoPages(
             element_pagination_title=current_element_title,
-            main_page=self._loadPageFromUrl(main_page_link),
+            main_page=main_page_soup,
             critic_reviews=critic_reviews,
             user_reviews=user_reviews
         )
