@@ -5,6 +5,6 @@ __all__ = [
   "safe_execute",
   "ExitCode",
   "SUCCESS",
-  "FAILURE"
+  "FAILURE",
   "BatchGenerator"
 ]
