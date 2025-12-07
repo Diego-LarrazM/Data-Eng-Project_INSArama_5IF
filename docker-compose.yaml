@@ -1,12 +1,18 @@
 name: insarama
 
 include:
+  # Data Piepeline Orchestrator
   - path: Airflow/compose.airflow.yaml
     project_directory: Airflow/
     env_file: Airflow/.env
+  # Data Warehouse
   - path: DataWarehouse/compose.datawarehouse.yaml
     project_directory: DataWarehouse/
     env_file: DataWarehouse/.env
+  # Dashboards
+  - path: Grafana/compose.grafana.yaml
+    project_directory: Grafana/
+    env_file: Grafana/.env
 
 networks:
   INSARAMA_NET:

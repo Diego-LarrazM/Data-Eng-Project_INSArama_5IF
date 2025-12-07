@@ -1,5 +1,6 @@
 from pymongo import MongoClient #, AsyncMongoClient
 from pymongo.client_session import ClientSession
+from typing import  Callable, Any
 from utils.execution import *
 from utils.batch_generator import BatchGenerator
 import ijson.backends.python as ijson
@@ -11,51 +12,38 @@ import os
 class MongoLoader:
 
     @staticmethod
-    def _make_filter_func(filter_columns, filter_values_list):
-        def filter_func(row):
-            
+    def _make_filter_func(blacklist_columns: list[str], whitelist_values: list[ dict[ str, set ] ]) -> Callable[[dict[str, Any]], bool]:
+
+        def filter_func(row: dict[str, Any]) -> bool:
             # 1. Remove forbidden columns (tu veux les supprimer mais pas skip)
-            if filter_columns is not None:
-                for col in filter_columns:
-                    if col in row:
-                        del row[col]
-
+            if blacklist_columns is not None:
+                for col in blacklist_columns:
+                    row.pop(col,None)
+                        
             # 2. Filter by values
-            if filter_values_list is not None:
-                match_found = False
+            if whitelist_values is None:
+                return True # keep the row if no filters
 
-                for filter_values in filter_values_list:
-                    match = True
-
-                    for col, vals in filter_values.items():
-                        if col not in row:
-                            match = False
-                            break
-
-                        vals_to_include = vals if isinstance(vals, list) else [vals]
-
-                        if row[col] not in vals_to_include:
-                            match = False
-                            break
-
-                    if match:
-                        match_found = True
+            for filter_group in whitelist_values:
+                match = True
+                for col, allowed_set in filter_group.items():
+                    # Check if the row's value for the column is in the allowed set
+                    actual_value = row.get(col, None)
+                    if actual_value is None or actual_value not in allowed_set:
+                        match = False
                         break
-
-                if not match_found:
-                    return True  # skip this row
-
-            return False  # keep the row
+                if match:
+                    return True # Found a matching group, keep the row
+            return False # Not found, row skipped
 
         return filter_func
     
-    @staticmethod
-    def with_session(operation):
-        def wrapper(self, *args,**kwargs) -> ExitCode:
-            with self.client.start_session() as session:
-
-                    return operation(self,*args, session=session,**kwargs)
-        return wrapper
+    # def with_transaction(operation):
+    #     def wrapper(self, *args,**kwargs) -> ExitCode:
+    #         with self.client.start_session() as session:
+    #             with session.start_transaction(): # auto abort/commit
+    #                 return operation(self,*args, session=session,**kwargs)
+    #     return wrapper
                 
     
     def __init__(self, mongo_conn_url:str, database:str):
@@ -64,7 +52,6 @@ class MongoLoader:
         self.db = self.client[database]
 
     @safe_execute
-    @with_session
     def load_from_csv(
         self,
         file_path: str,
@@ -99,7 +86,6 @@ class MongoLoader:
         
 
     @safe_execute
-    @with_session
     def load_from_json(self, file_path: str, session: ClientSession=None) -> ExitCode: # Does not accept decimals, must be stringyfied
         if not os.path.exists(file_path):
             raise Exception(f"File {file_path} does not exist.")
@@ -114,7 +100,6 @@ class MongoLoader:
         return SUCCESS
     
     @safe_execute
-    @with_session
     def load_single(self, data: dict, collection_name: str, session: ClientSession=None) -> ExitCode:
         if not data:
             raise Exception(f"Data to load not provided.")
@@ -122,7 +107,6 @@ class MongoLoader:
         return SUCCESS
     
     @safe_execute
-    @with_session
     def load_multiple(self, data: list[dict], collection_name: str, session: ClientSession=None) -> ExitCode:
         if not data:
             raise Exception(f"Data to load not provided.")
