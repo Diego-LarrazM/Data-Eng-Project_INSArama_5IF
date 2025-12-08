@@ -29,7 +29,7 @@ class BatchGenerator:
 
         batch: list[T] = []
         for item in self.generator:
-            if self.filter_func and self.filter_func(item): continue
+            if self.filter_func and not self.filter_func(item): continue
             batch.append(item)
             if len(batch) >= self.batch_size:
                 return batch

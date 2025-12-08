@@ -1,8 +1,13 @@
 from pymongo import MongoClient #, AsyncMongoClient
 from pymongo.client_session import ClientSession
 from typing import  Callable, Any
-from utils.execution import *
-from utils.batch_generator import BatchGenerator
+try : 
+    from utils.execution import *
+    from utils.batch_generator import BatchGenerator
+except ImportError :
+    from .utils.execution import *
+    from .utils.batch_generator import BatchGenerator
+
 import ijson.backends.python as ijson
 import csv
 import os
@@ -13,14 +18,18 @@ class MongoLoader:
 
     @staticmethod
     def _make_filter_func(blacklist_columns: list[str], whitelist_values: list[ dict[ str, set ] ]) -> Callable[[dict[str, Any]], bool]:
-
+        """
+        Blacklist columns are removed from the row.
+        Whitelist values is a list of dicts, each dict maps column names to sets of allowed values.
+        A row is kept if it matches at least one of the dicts in whitelist_values or w
+        """
         def filter_func(row: dict[str, Any]) -> bool:
             # 1. Remove forbidden columns (tu veux les supprimer mais pas skip)
             if blacklist_columns is not None:
                 for col in blacklist_columns:
                     row.pop(col,None)
                         
-            # 2. Filter by values
+            # 2. Filter by values 
             if whitelist_values is None:
                 return True # keep the row if no filters
 

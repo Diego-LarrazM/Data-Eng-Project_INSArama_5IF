@@ -17,7 +17,6 @@ sys.path.insert(0, str(ROOT))
 # ============================================================
 # Maintenant Python voit le dossier racine, donc ceci fonctionne :
 from DockerETL_Images.Ingestion.IMDBCurler.scripts.utils.batch_generator import BatchGenerator
-# ⚠️ Vérifie que ton fichier s'appelle bien BatchGenerator.py
 
 
 class TestBatchGenerator(unittest.TestCase):
