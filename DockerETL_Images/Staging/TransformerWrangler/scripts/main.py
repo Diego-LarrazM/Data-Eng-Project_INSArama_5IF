@@ -15,7 +15,4 @@ if __name__ == "__main__":
         credentials = f"{quote_plus(USERNAME)}:{quote_plus(PASSWORD)}@"
     mongo_url = f"mongodb://{credentials}{HOST}:{PORT}/"
 
-    TransformerWrangler = TfWrangler(
-                                mongo_conn_url=mongo_url, 
-                                database=MONGO_DB
-                           )
+    TransformerWrangler = TfWrangler(mongo_conn_url=mongo_url, database=MONGO_DB)

@@ -25,12 +25,11 @@ class MediaInfoPages:
             "user_reviews": {
                 platform: [r.to_dict() for r in reviews]
                 for platform, reviews in self.user_reviews.items()
-            }
+            },
         }
 
     def __len__(self):
         # total number of critic + user reviews
-        return (
-            sum(len(v) for v in self.critic_reviews.values())
-            + sum(len(v) for v in self.user_reviews.values())
+        return sum(len(v) for v in self.critic_reviews.values()) + sum(
+            len(v) for v in self.user_reviews.values()
         )

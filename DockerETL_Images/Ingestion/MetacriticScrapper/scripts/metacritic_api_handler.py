@@ -8,10 +8,10 @@ class MetacriticReviewAPIHandler:
     def __init__(
         self,
         base_link: str,
-        user_agent: dict[str: str],
+        user_agent: dict[str:str],
         isCritics: bool = True,
         response_limit: int = 20,
-        max_retries: int = 3
+        max_retries: int = 3,
     ):
         if "User-agent" not in user_agent:
             raise ValueError(f"User-agent not defined: {user_agent}")
@@ -39,17 +39,13 @@ class MetacriticReviewAPIHandler:
 
         for attempt in range(1, self.max_retries + 1):
             try:
-                response = requests.get(
-                    api_link,
-                    headers=self.USER_AGENT,
-                    timeout=10
-                )
+                response = requests.get(api_link, headers=self.USER_AGENT, timeout=10)
             except Exception as e:
                 last_error = {
                     "type": "request_exception",
                     "message": str(e),
                     "attempt": attempt,
-                    "url": api_link
+                    "url": api_link,
                 }
             else:
                 # Retry only on server-side issues
@@ -58,7 +54,7 @@ class MetacriticReviewAPIHandler:
                         "type": "server_error",
                         "status_code": response.status_code,
                         "attempt": attempt,
-                        "url": api_link
+                        "url": api_link,
                     }
                 else:
                     try:
@@ -68,7 +64,7 @@ class MetacriticReviewAPIHandler:
                             "type": "non_json_response",
                             "status_code": response.status_code,
                             "attempt": attempt,
-                            "url": api_link
+                            "url": api_link,
                         }
                     else:
                         if "data" in payload:
@@ -79,7 +75,7 @@ class MetacriticReviewAPIHandler:
                             "status_code": response.status_code,
                             "payload_keys": list(payload.keys()),
                             "attempt": attempt,
-                            "url": api_link
+                            "url": api_link,
                         }
 
             if attempt < self.max_retries:
@@ -89,10 +85,7 @@ class MetacriticReviewAPIHandler:
         return {
             "items": [],
             "totalResults": 0,
-            "_error": {
-                **last_error,
-                "retries_exhausted": True
-            }
+            "_error": {**last_error, "retries_exhausted": True},
         }
 
     def getTotalReviews(self) -> int:
@@ -105,8 +98,7 @@ class MetacriticReviewAPIHandler:
             return []
 
         return [
-            MetacriticReview(item, self.isCritics)
-            for item in data.get("items", [])
+            MetacriticReview(item, self.isCritics) for item in data.get("items", [])
         ]
 
     def getReviews(self) -> list[MetacriticReview]:

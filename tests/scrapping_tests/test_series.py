@@ -10,18 +10,15 @@ def save_tv_json(media, output_folder="tv_results"):
 
     data = {
         "tv_title": media.element_pagination_title.replace("-", " ").title(),
-
         "media_details": media.media_details,
-
         "critic_reviews": {
             season: [rev.to_dict() for rev in reviews]
             for season, reviews in media.critic_reviews.items()
         },
-
         "user_reviews": {
             season: [rev.to_dict() for rev in reviews]
             for season, reviews in media.user_reviews.items()
-        }
+        },
     }
 
     with open(os.path.join(output_folder, filename), "w", encoding="utf8") as f:
@@ -31,8 +28,7 @@ def save_tv_json(media, output_folder="tv_results"):
 
 
 scr = MetacriticScrapper(
-    MetacriticCategory.TV_SHOWS,
-    user_agent={"User-agent": "Mozilla/5.0"}
+    MetacriticCategory.TV_SHOWS, user_agent={"User-agent": "Mozilla/5.0"}
 )
 
 print(f"Loaded first page — total elements: {len(scr.browse_element_list)}")
