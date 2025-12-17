@@ -1,0 +1,31 @@
+name: Code Quality
+
+# Se déclenche sur PR et sur push vers main/develop
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+      - develop
+
+jobs:
+  quality:
+    runs-on: ubuntu-latest
+
+    steps:
+      # 1️⃣ Récupérer le code
+      - uses: actions/checkout@v4
+
+      # 2️⃣ Installer Python
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      # 3️⃣ Installer les outils de qualité
+      - name: Install quality tools
+        run: |
+          pip install black
+
+      # 4️⃣ Vérifier le format avec Black
+      - name: Black (format check)
+        run: black --check .
