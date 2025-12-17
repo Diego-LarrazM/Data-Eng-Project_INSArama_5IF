@@ -18,7 +18,7 @@ def save_movie_json(media: MediaInfoPages, output_folder="movies_results"):
         "user_reviews": {
             platform: [review.to_dict() for review in reviews]
             for platform, reviews in media.user_reviews.items()
-        }
+        },
     }
 
     filepath = os.path.join(output_folder, filename)
@@ -31,7 +31,7 @@ def save_movie_json(media: MediaInfoPages, output_folder="movies_results"):
 
 scr = MetacriticScrapper(
     MetacriticCategory.MOVIES,
-    user_agent={"User-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64)"}
+    user_agent={"User-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64)"},
 )
 
 print("Max pages:", scr.MAX_PAGES)
@@ -41,8 +41,7 @@ N = 50
 count = 0
 
 for movie in scr:
-    print(
-        f"\n=== Saving movie {count+1}: {movie.element_pagination_title} ===")
+    print(f"\n=== Saving movie {count+1}: {movie.element_pagination_title} ===")
     save_movie_json(movie)
     count += 1
 

@@ -22,7 +22,7 @@ class MetacriticReview:
             "post_date": self.post_date,
             "full_review_src_url": self.full_review_src_url,
             "spoiler": self.spoiler,
-            "isCritic": self.isCritic
+            "isCritic": self.isCritic,
         }
 
     def __init__(self, data: dict, isCritic: bool):
@@ -41,28 +41,27 @@ class MetacriticReview:
 
     def __repr__(self):
         wrapped_quote = textwrap.fill(
-            self.quote,
-            width=80,
-            subsequent_indent=" " * 10   # matches 4-space indent
+            self.quote, width=80, subsequent_indent=" " * 10  # matches 4-space indent
         )
-        return "MetacriticReview(\n" +\
-               f"    author={self.author}\n" +\
-               f"    company={self.company}\n" +\
-               f"    isCritic={self.isCritic}\n" +\
-               f"    full_review_src_url={self.full_review_src_url}\n" +\
-               f"    spoiler={self.spoiler}\n" +\
-               f"    post_date={self.post_date}\n" +\
-               f"    rating={self.rating}\n" +\
-               f"    quote=\"{wrapped_quote}\"\n" +\
-               ")"
+        return (
+            "MetacriticReview(\n"
+            + f"    author={self.author}\n"
+            + f"    company={self.company}\n"
+            + f"    isCritic={self.isCritic}\n"
+            + f"    full_review_src_url={self.full_review_src_url}\n"
+            + f"    spoiler={self.spoiler}\n"
+            + f"    post_date={self.post_date}\n"
+            + f"    rating={self.rating}\n"
+            + f'    quote="{wrapped_quote}"\n'
+            + ")"
+        )
 
     def __str__(self):
-        wrapped_quote = textwrap.fill(
-            self.quote,
-            width=80
+        wrapped_quote = textwrap.fill(self.quote, width=80)
+        return (
+            f"\n"
+            + f'"{wrapped_quote}"\n'
+            + f" - by {self.author}"
+            + (f" | {self.company}" if self.company else "")
+            + f" [{self.post_date}]"
         )
-        return f"\n" +\
-            f"\"{wrapped_quote}\"\n" +\
-            f" - by {self.author}" + \
-            (f" | {self.company}" if self.company else "") + \
-            f" [{self.post_date}]"

@@ -4,7 +4,8 @@ from functools import wraps
 ExitCode: TypeAlias = bool
 
 SUCCESS: ExitCode = False  # 0 → success
-FAILURE: ExitCode = True   # 1 → failure
+FAILURE: ExitCode = True  # 1 → failure
+
 
 def safe_execute(_func=None, *, fail_return=FAILURE):
     def decorator(operation):
@@ -15,6 +16,7 @@ def safe_execute(_func=None, *, fail_return=FAILURE):
             except Exception as e:
                 print(f"An error occurred during execution: {e}")
                 return fail_return
+
         return wrapper
 
     # if used without parentheses: @safe_execute
@@ -23,6 +25,7 @@ def safe_execute(_func=None, *, fail_return=FAILURE):
 
     # if used with parentheses: @safe_execute(fail_return=...)
     return decorator
+
 
 def safe_generate(_func=None, *, fail_return=FAILURE):
     def decorator(generator):
@@ -34,6 +37,7 @@ def safe_generate(_func=None, *, fail_return=FAILURE):
             except Exception as e:
                 print(f"An error occurred during execution: {e}")
                 yield fail_return
+
         return wrapper
 
     # if used without parentheses: @safe_execute

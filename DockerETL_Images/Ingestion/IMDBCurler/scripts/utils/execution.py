@@ -4,7 +4,7 @@ from functools import wraps
 ExitCode: TypeAlias = bool
 
 SUCCESS: ExitCode = False  # 0 → success
-FAILURE: ExitCode = True   # 1 → failure
+FAILURE: ExitCode = True  # 1 → failure
 
 
 def safe_execute(operation):
@@ -15,4 +15,5 @@ def safe_execute(operation):
         except Exception as e:
             print(f"An error occurred during execution: {e}")
             return FAILURE
+
     return wrapper

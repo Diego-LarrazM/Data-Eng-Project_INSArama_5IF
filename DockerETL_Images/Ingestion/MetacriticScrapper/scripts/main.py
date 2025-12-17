@@ -18,7 +18,4 @@ if __name__ == "__main__":
         credentials = f"{quote_plus(USERNAME)}:{quote_plus(PASSWORD)}@"
     mongo_url = f"mongodb://{credentials}{HOST}:{PORT}/"
 
-    extractor = MongoLoader(
-                    mongo_conn_url=mongo_url, 
-                    database=MONGO_DB
-                )
+    extractor = MongoLoader(mongo_conn_url=mongo_url, database=MONGO_DB)
