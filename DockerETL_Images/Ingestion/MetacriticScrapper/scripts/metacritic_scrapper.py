@@ -361,20 +361,6 @@ class MetacriticScrapper:
 
         return results
 
-    # def _extractSeasons(self, soup):
-    #    seasons = []
-    #    container = soup.find("div", class_="c-seasonSelector")
-    #    if not container:
-    #        return seasons
-    #
-    #    for a in container.find_all("a"):
-    #        href = a.get("href", "")
-    #        if "season=" in href:
-    #            slug = href.split("season=")[-1].strip()
-    #            seasons.append(slug)
-    #
-    # return seasons
-
     def _extractTvSeriesDetails(self, soup):
         media_details = {
             "summary": self._extract_summary_from_nuxt(soup),
@@ -498,72 +484,56 @@ class MetacriticScrapper:
         critics_reviews_base_link = f"critic/{review_p_inf[0]}/{current_element_title}"
         user_reviews_base_link = f"user/{review_p_inf[0]}/{current_element_title}"
 
+        main_page_soup = self._loadPageFromUrl(main_page_link)
+
         critic_reviews = {}
         user_reviews = {}
 
-        # criticsReviewHandler = MetacriticReviewAPIHandler(
-        #  critics_reviews_base_link, user_agent=self.USER_AGENT, isCritics=True)
-        # userReviewHandler = MetacriticReviewAPIHandler(
-        #    user_reviews_base_link, user_agent=self.USER_AGENT, isCritics=False)
-
-        # rev = criticsReviewHandler.getReviews()
-
-        # return rev  # for testing
-
         # VIDEO GAMES
-        if review_p_inf[1] == "platform":
-            main_soup = self._loadPageFromUrl(main_page_link)
+        if review_p_inf[1]:  # if contains sections
+            critics_reviews_base_link += f"{review_p_inf[1]}/"
+            user_reviews_base_link += f"{review_p_inf[1]}/"
 
-            platforms = self._extractGamePlatforms(main_soup)
-
-            media_details = self._extractGameDetails(
-                main_soup,
-                platforms=[p[1] for p in platforms]
-            )
-
-            for platform_slug, platform_display in platforms:
-
-                criticsReviewHandler = MetacriticReviewAPIHandler(
-                    critics_reviews_base_link + f"/platform/{platform_slug}",
-                    user_agent=self.USER_AGENT,
-                    isCritics=True
+            sections = []
+            if review_p_inf[1] == "platform":
+                sections = self._extractGamePlatforms(main_page_soup)
+                media_details = self._extractGameDetails(
+                    main_soup,
+                    platforms=[p[1] for p in sections]
                 )
-
-                userReviewHandler = MetacriticReviewAPIHandler(
-                    user_reviews_base_link + f"/platform/{platform_slug}",
-                    user_agent=self.USER_AGENT,
-                    isCritics=False
-                )
-
-                critic_reviews[platform_display] = criticsReviewHandler.getReviews()
-                user_reviews[platform_display] = userReviewHandler.getReviews()
-        elif review_p_inf[1] == "season":
-            # TV SHOWS
-            main_soup = self._loadPageFromUrl(main_page_link)
-            media_details = self._extractTvSeriesDetails(main_soup)
-
-            for season in media_details.get("seasons", []):
-                season_slug = season.get("season_slug")
-                if not season_slug:
-                    continue
-
-                criticsReviewHandler = MetacriticReviewAPIHandler(
-                    critics_reviews_base_link + f"/season/{season_slug}",
-                    user_agent=self.USER_AGENT,
-                    isCritics=True
-                )
-                userReviewHandler = MetacriticReviewAPIHandler(
-                    user_reviews_base_link + f"/season/{season_slug}",
-                    user_agent=self.USER_AGENT,
-                    isCritics=False
-                )
-
-                critic_reviews[season_slug] = criticsReviewHandler.getReviews()
-                user_reviews[season_slug] = userReviewHandler.getReviews()
+            elif review_p_inf[1] == "season":
+                media_details = self._extractTvSeriesDetails(main_soup)
                 media_details["cast"] = self._extractCastFromCredits(
                     slug=current_element_title,
                     browse_type=self.pagination_info["browse"]
                 )
+                sections = media_details.get("seasons", [])
+
+            for section in sections:
+                if section == "platform":
+                    section_slug = section[0]
+                    section_display = section[1]
+                elif section == "season":
+                    section_slug = section.get("season_slug")
+                    section_display = section_slug
+
+                criticsReviewHandler = MetacriticReviewAPIHandler(
+                    critics_reviews_base_link +
+                    f"/{review_p_inf[1]}/{section_slug}",
+                    user_agent=self.USER_AGENT,
+                    isCritics=True
+                )
+
+                userReviewHandler = MetacriticReviewAPIHandler(
+                    user_reviews_base_link +
+                    f"/{review_p_inf[1]}/{section_slug}",
+                    user_agent=self.USER_AGENT,
+                    isCritics=False
+                )
+
+                critic_reviews[section_display] = criticsReviewHandler.getReviews()
+                user_reviews[section_display] = userReviewHandler.getReviews()
+
         else:
             # MOVIES
             criticsReviewHandler = MetacriticReviewAPIHandler(
