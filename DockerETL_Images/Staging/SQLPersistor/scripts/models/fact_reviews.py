@@ -26,4 +26,4 @@ class ReviewsFactORM(ModelsBase):
   def __repr__(self):
     return (f"<ReviewsFactORM(Reviewer_ID={self.Reviewer_ID}, Time_ID={self.Time_ID}, "
             f"Platform_ID={self.Platform_ID}, MediaInfo_ID={self.MediaInfo_ID}, "
-            f"Franchise_ID={self.Franchise_ID}, RatingScore={self.RatingScore})>")
+            f"FranchiseTitle={self.FranchiseTitle}, RatingScore={self.RatingScore})>")

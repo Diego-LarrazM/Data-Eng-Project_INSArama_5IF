@@ -74,12 +74,9 @@ if __name__ == "__main__":
     print(f"src   : <{MONGO_URL}>")
     print(f"target: <{DW_POSTGRES_DB_URL}>\n")
     
-    fail_counter = 0
-    counter = 0
     with persistor.session_scope() as session:
       for collection_name, model in COLLECTIONS:
-        for object in ex_factory(collection_name, model, batch_size=DW_POSTGRES_LOAD_BATCH_SIZE):
-            fail_counter+=persistor.persist(object)
-            counter+=1
+        extractor = ex_factory(collection_name, model, batch_size=DW_POSTGRES_LOAD_BATCH_SIZE)
+        persistor.persist_from(extractor, batch_size=DW_POSTGRES_LOAD_BATCH_SIZE, session=session)
             
-    print(f"\n<-- Persisted successfully {counter-fail_counter}/{counter} rows | Transaction status: {persistor.last_execution_status} -->")
+    print(f"\n<-- Transaction status: {persistor.last_execution_status} -->")

@@ -1,14 +1,9 @@
 # < SQLPersistor >
 
-- To run (Linux):
+- To run (Linux): (pip install pytest if needed)
 
-1. `.../tests/SQLPersistor> docker compose up -d`
-2. `(Start python venv however you prefer)`
-3. `(venv) .../tests/SQLPersistor> python test.py`
+1. `.../tests/SQLPersistor> pytest -v --capture=sys --log-cli-level=INFO`
 > ... logs
-> 
-> ---------- < Test completed successfully > ----------
-
 
 - PgAdmin connexion:
 
