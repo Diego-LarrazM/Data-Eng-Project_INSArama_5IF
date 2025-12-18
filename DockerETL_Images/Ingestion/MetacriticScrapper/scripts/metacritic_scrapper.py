@@ -476,19 +476,17 @@ class MetacriticScrapper:
         critics_reviews_base_link = f"critic/{review_p_inf[0]}/{current_element_title}"
         user_reviews_base_link = f"user/{review_p_inf[0]}/{current_element_title}"
 
-        main_page_soup = self._loadPageFromUrl(main_page_link)
+        main_soup = self._loadPageFromUrl(main_page_link)
 
         critic_reviews = {}
         user_reviews = {}
 
         # VIDEO GAMES
         if review_p_inf[1]:  # if contains sections
-            critics_reviews_base_link += f"{review_p_inf[1]}/"
-            user_reviews_base_link += f"{review_p_inf[1]}/"
-
             sections = []
+
             if review_p_inf[1] == "platform":
-                sections = self._extractGamePlatforms(main_page_soup)
+                sections = self._extractGamePlatforms(main_soup)
                 media_details = self._extractGameDetails(
                     main_soup, platforms=[p[1] for p in sections]
                 )
@@ -501,11 +499,13 @@ class MetacriticScrapper:
                 sections = media_details.get("seasons", [])
 
             for section in sections:
-                if section == "platform":
+                if review_p_inf[1] == "platform":
                     section_slug = section[0]
                     section_display = section[1]
-                elif section == "season":
+                elif review_p_inf[1] == "season":
                     section_slug = section.get("season_slug")
+                    if not section_slug:
+                        continue
                     section_display = section_slug
 
                 criticsReviewHandler = MetacriticReviewAPIHandler(
