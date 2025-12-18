@@ -10,29 +10,25 @@ from bs4 import BeautifulSoup
 class MetacriticScrapper:
 
     class cssClassTags:
-        NAV_SPAN = (
-            "c-navigationPagination_item "
-            + "c-navigationPagination_item--page "
-            + "enabled"
-        )
-        NAV_INNER_SPAN = (
-            "c-navigationPagination_itemButtonContent "
-            + "u-flexbox "
-            + "u-flexbox-alignCenter "
-            + "u-flexbox-justifyCenter"
-        )
+        NAV_SPAN = "c-navigationPagination_item " + \
+                   "c-navigationPagination_item--page " + \
+                   "enabled"
+        NAV_INNER_SPAN = "c-navigationPagination_itemButtonContent " + \
+                         "u-flexbox " + \
+                         "u-flexbox-alignCenter " + \
+                         "u-flexbox-justifyCenter"
         PAGE_ELMTS_CONTAINER = "c-productListings"
-        PAGE_ELMTS_SUBCONTAINER = re.compile(
-            "c-productListings_grid "
-            + "g-grid-container "
-            + "u-grid-columns "
-            + "g-inner-spacing-bottom-large"
-            + ".*"
-        )
+        PAGE_ELMTS_SUBCONTAINER = re.compile("c-productListings_grid " +
+                                             "g-grid-container " +
+                                             "u-grid-columns " +
+                                             "g-inner-spacing-bottom-large" +
+                                             ".*")
         ELEMENT_CONTAINER = re.compile("c-finderProductCard.*")
         ELMT_a = re.compile("c-finderProductCard_container.*")
 
-        PLATFORM_LI = "c-gameDetails_listItem " + "g-color-gray70 " + "u-inline-block"
+        PLATFORM_LI = "c-gameDetails_listItem " +\
+                      "g-color-gray70 " +\
+                      "u-inline-block"
 
     def __init__(self, category: MetacriticCategory, user_agent: dict[str:str]):
         if "User-agent" not in user_agent:
@@ -43,39 +39,24 @@ class MetacriticScrapper:
         self.USER_AGENT = user_agent
         # Pagination details to obtain browse page, review APIs and platform/season info container tag
         if category == MetacriticCategory.GAMES:
-            self.pagination_info = {
-                "browse": "game",
-                "reviews": ("games", "platform"),
-                "sections_cssTag": None,
-            }
+            self.pagination_info = {"browse": "game", "reviews": (
+                "games", "platform"), "sections_cssTag": None}
         elif category == MetacriticCategory.MOVIES:
-            self.pagination_info = {
-                "browse": "movie",
-                "reviews": ("movies", None),
-                "sections_cssTag": None,
-            }
+            self.pagination_info = {"browse": "movie", "reviews": (
+                "movies", None), "sections_cssTag": None}
         elif category == MetacriticCategory.TV_SHOWS:
-            self.pagination_info = {
-                "browse": "tv",
-                "reviews": ("seasons", "season"),
-                "sections_cssTag": None,
-            }
+            self.pagination_info = {"browse": "tv", "reviews": (
+                "seasons", "season"), "sections_cssTag": None}
         else:
             raise f"Category {category} is not recognized... possible values: (GAMES, MOVIES, TV_SHOWS)."
 
-        self.url = (
-            f"https://www.metacritic.com/browse/{self.pagination_info["browse"]}/"
-        )
+        self.url = f"https://www.metacritic.com/browse/{self.pagination_info["browse"]}/"
 
         self._loadCurrentPage()
 
-        self.MAX_PAGES = int(
-            self.browse_page_soup.find_all("span", class_=self.cssClassTags.NAV_SPAN)[
-                -1
-            ]
-            .find("span", class_=self.cssClassTags.NAV_INNER_SPAN)
-            .text.strip()
-        )
+        self.MAX_PAGES = int(self.browse_page_soup
+                             .find_all("span", class_=self.cssClassTags.NAV_SPAN)[-1]
+                             .find("span", class_=self.cssClassTags.NAV_INNER_SPAN).text.strip())
 
         # self.MAX_PAGES = 582 # for testing end
 
@@ -97,32 +78,30 @@ class MetacriticScrapper:
     def _loadCurrentPage(self) -> None:
         self.current_elmt_num = 1  # Reset current element number
         self.browse_page_soup = self._loadPageFromUrl(
-            self.url + f"?page={self.page_num}"
-        )  # Load page soup
+            self.url + f"?page={self.page_num}")  # Load page soup
         self._extractCurrentPageElements()
-        print(f"Loaded page {self.page_num} with {self.max_elements} elements.")
+        print(
+            f"Loaded page {self.page_num} with {self.max_elements} elements.")
 
     def _loadPageFromUrl(self, url) -> BeautifulSoup:
         response = requests.get(url, headers=self.USER_AGENT)
         return BeautifulSoup(response.text, "html.parser")
 
     def _extractCurrentPageElements(self) -> None:
-        elements_container = self.browse_page_soup.find(
-            "div", class_=self.cssClassTags.PAGE_ELMTS_CONTAINER
-        ).findChildren("div", class_=self.cssClassTags.PAGE_ELMTS_SUBCONTAINER)
+        elements_container = self.browse_page_soup\
+            .find("div", class_=self.cssClassTags.PAGE_ELMTS_CONTAINER)\
+            .findChildren("div", class_=self.cssClassTags.PAGE_ELMTS_SUBCONTAINER)
         # There are two subcontainers to search
         self.browse_element_list = []
         for i in range(2):
-            for elmt in elements_container[i].find_all(
-                "div", class_=self.cssClassTags.ELEMENT_CONTAINER, recursive=False
-            ):
+            for elmt in elements_container[i].find_all("div", class_=self.cssClassTags.ELEMENT_CONTAINER, recursive=False):
                 a = elmt.find("a", class_=self.cssClassTags.ELMT_a)
                 if a and a.has_attr("href"):
                     # Get title used in url to idenfitfy it
                     # url/TITLE/ we take out the end /
                     trimmed = a["href"][:-1]
                     # we find the first / from the right thus taking TITLE
-                    element_pagination_title = trimmed[trimmed.rfind("/") + 1 :]
+                    element_pagination_title = trimmed[trimmed.rfind("/") + 1:]
                     self.browse_element_list.append(element_pagination_title)
         self.max_elements = len(self.browse_element_list)
 
@@ -137,7 +116,9 @@ class MetacriticScrapper:
         cast = []
 
         # Find the Cast section header
-        cast_header = soup.find("h3", string=lambda s: s and "cast" in s.lower())
+        cast_header = soup.find(
+            "h3", string=lambda s: s and "cast" in s.lower()
+        )
         if not cast_header:
             return cast
 
@@ -160,29 +141,42 @@ class MetacriticScrapper:
             name = actor_link.get_text(strip=True)
             role = role_dt.get_text(strip=True) if role_dt else None
 
-            cast.append({"name": name, "role": role if role else None})
+            cast.append({
+                "name": name,
+                "role": role if role else None
+            })
 
         return cast
 
     def _extractAwards(self, soup):
         awards = []
 
-        container = soup.find("div", attrs={"data-testid": "details-award-summary"})
+        container = soup.find(
+            "div", attrs={"data-testid": "details-award-summary"}
+        )
         if not container:
             return awards
 
         for award_div in container.select("div.c-productionAwardSummary_award"):
             name_div = award_div.find("div", class_="g-text-bold")
-            summary_div = name_div.find_next_sibling("div") if name_div else None
+            summary_div = name_div.find_next_sibling(
+                "div") if name_div else None
 
             if not name_div:
                 continue
 
             summary = None
             if summary_div:
-                summary = summary_div.get_text(strip=True).lstrip("•").strip()
+                summary = (
+                    summary_div.get_text(strip=True)
+                    .lstrip("•")
+                    .strip()
+                )
 
-            awards.append({"name": name_div.get_text(strip=True), "summary": summary})
+            awards.append({
+                "name": name_div.get_text(strip=True),
+                "summary": summary
+            })
 
         return awards
 
@@ -193,7 +187,11 @@ class MetacriticScrapper:
 
         text = script.string
 
-        match = re.search(r'description\s*:\s*"((?:\\.|[^"\\])*)"', text, re.DOTALL)
+        match = re.search(
+            r'description\s*:\s*"((?:\\.|[^"\\])*)"',
+            text,
+            re.DOTALL
+        )
 
         if not match:
             return None
@@ -214,11 +212,12 @@ class MetacriticScrapper:
             "production_companies": [],
             "release_date": None,
             "rating": None,
-            "awards": self._extractAwards(soup),
+            "awards": self._extractAwards(soup)
         }
 
         # Directors
-        directors_div = soup.find("div", class_="c-productDetails_staff_directors")
+        directors_div = soup.find(
+            "div", class_="c-productDetails_staff_directors")
         if directors_div:
             details["directed_by"] = [
                 a.get_text(strip=True)
@@ -229,15 +228,14 @@ class MetacriticScrapper:
         writers_div = soup.find("div", class_="c-productDetails_staff_writers")
         if writers_div:
             details["written_by"] = [
-                a.get_text(strip=True) for a in writers_div.select("a.c-crewList_link")
+                a.get_text(strip=True)
+                for a in writers_div.select("a.c-crewList_link")
             ]
 
         # Production / release / duration / rating / genres
         details_container = soup.find("div", class_="c-ProductionDetails")
         if details_container:
-            for section in details_container.select(
-                "div.c-movieDetails_sectionContainer"
-            ):
+            for section in details_container.select("div.c-movieDetails_sectionContainer"):
                 label = section.find("span", class_="g-text-bold")
                 if not label:
                     continue
@@ -246,7 +244,8 @@ class MetacriticScrapper:
 
                 if "production company" in label_text:
                     details["production_companies"] = [
-                        c.get_text(strip=True) for c in section.select("ul li span")
+                        c.get_text(strip=True)
+                        for c in section.select("ul li span")
                     ]
 
                 elif "release date" in label_text:
@@ -280,7 +279,7 @@ class MetacriticScrapper:
             "developers": [],
             "publishers": [],
             "genres": [],
-            "platforms": platforms if platforms else [],
+            "platforms": platforms if platforms else []
         }
 
         esrb_title = soup.select_one(
@@ -314,7 +313,8 @@ class MetacriticScrapper:
 
             details["developers"] = list({name for name in dev_names if name})
 
-        pub_block = game_details.find("div", class_="c-gameDetails_Distributor")
+        pub_block = game_details.find(
+            "div", class_="c-gameDetails_Distributor")
         if pub_block:
             pub_names = []
 
@@ -330,8 +330,12 @@ class MetacriticScrapper:
 
             details["publishers"] = list({name for name in pub_names if name})
 
-        genre_spans = game_details.select("ul.c-genreList span.c-globalButton_label")
-        details["genres"] = [span.get_text(strip=True) for span in genre_spans]
+        genre_spans = game_details.select(
+            "ul.c-genreList span.c-globalButton_label"
+        )
+        details["genres"] = [
+            span.get_text(strip=True) for span in genre_spans
+        ]
 
         return details
 
@@ -366,7 +370,7 @@ class MetacriticScrapper:
             "rating": None,
             "genres": [],
             "seasons": [],
-            "awards": self._extractAwards(soup),
+            "awards": self._extractAwards(soup)
         }
 
         # DETAILS ROOT
@@ -375,12 +379,15 @@ class MetacriticScrapper:
             return media_details
 
         # Production companies
-        prod_label = root.find("span", string=lambda s: s and "Production Company" in s)
+        prod_label = root.find(
+            "span", string=lambda s: s and "Production Company" in s
+        )
         if prod_label:
             ul = prod_label.find_next("ul")
             if ul:
                 media_details["production_companies"] = [
-                    li.get_text(strip=True) for li in ul.find_all("li")
+                    li.get_text(strip=True)
+                    for li in ul.find_all("li")
                 ]
 
         # Initial release date
@@ -390,7 +397,8 @@ class MetacriticScrapper:
         if release_label:
             value = release_label.find_next("span", class_="g-color-gray70")
             if value:
-                media_details["initial_release_date"] = value.get_text(strip=True)
+                media_details["initial_release_date"] = value.get_text(
+                    strip=True)
 
         # Number of seasons
         seasons_label = root.find(
@@ -407,7 +415,9 @@ class MetacriticScrapper:
                     pass
 
         # Rating
-        rating_label = root.find("span", string=lambda s: s and s.strip() == "Rating:")
+        rating_label = root.find(
+            "span", string=lambda s: s and s.strip() == "Rating:"
+        )
         if rating_label:
             value = rating_label.find_next("span", class_="g-color-gray70")
             if value:
@@ -451,15 +461,13 @@ class MetacriticScrapper:
             if score_span and score_span.get_text(strip=True).isdigit():
                 metascore = int(score_span.get_text(strip=True))
 
-            media_details["seasons"].append(
-                {
-                    "season": season_name,
-                    "season_slug": season_slug,
-                    "episodes": episodes,
-                    "year": year,
-                    "metascore": metascore,
-                }
-            )
+            media_details["seasons"].append({
+                "season": season_name,
+                "season_slug": season_slug,
+                "episodes": episodes,
+                "year": year,
+                "metascore": metascore
+            })
 
         return media_details
 
@@ -476,48 +484,51 @@ class MetacriticScrapper:
         critics_reviews_base_link = f"critic/{review_p_inf[0]}/{current_element_title}"
         user_reviews_base_link = f"user/{review_p_inf[0]}/{current_element_title}"
 
-        main_page_soup = self._loadPageFromUrl(main_page_link)
+        main_soup = self._loadPageFromUrl(main_page_link)
 
         critic_reviews = {}
         user_reviews = {}
 
         # VIDEO GAMES
         if review_p_inf[1]:  # if contains sections
-            critics_reviews_base_link += f"{review_p_inf[1]}/"
-            user_reviews_base_link += f"{review_p_inf[1]}/"
-
             sections = []
+
             if review_p_inf[1] == "platform":
-                sections = self._extractGamePlatforms(main_page_soup)
+                sections = self._extractGamePlatforms(main_soup)
                 media_details = self._extractGameDetails(
-                    main_soup, platforms=[p[1] for p in sections]
+                    main_soup,
+                    platforms=[p[1] for p in sections]
                 )
             elif review_p_inf[1] == "season":
                 media_details = self._extractTvSeriesDetails(main_soup)
                 media_details["cast"] = self._extractCastFromCredits(
                     slug=current_element_title,
-                    browse_type=self.pagination_info["browse"],
+                    browse_type=self.pagination_info["browse"]
                 )
                 sections = media_details.get("seasons", [])
 
             for section in sections:
-                if section == "platform":
+                if review_p_inf[1] == "platform":
                     section_slug = section[0]
                     section_display = section[1]
-                elif section == "season":
+                elif review_p_inf[1] == "season":
                     section_slug = section.get("season_slug")
+                    if not section_slug:
+                        continue
                     section_display = section_slug
 
                 criticsReviewHandler = MetacriticReviewAPIHandler(
-                    critics_reviews_base_link + f"/{review_p_inf[1]}/{section_slug}",
+                    critics_reviews_base_link +
+                    f"/{review_p_inf[1]}/{section_slug}",
                     user_agent=self.USER_AGENT,
-                    isCritics=True,
+                    isCritics=True
                 )
 
                 userReviewHandler = MetacriticReviewAPIHandler(
-                    user_reviews_base_link + f"/{review_p_inf[1]}/{section_slug}",
+                    user_reviews_base_link +
+                    f"/{review_p_inf[1]}/{section_slug}",
                     user_agent=self.USER_AGENT,
-                    isCritics=False,
+                    isCritics=False
                 )
 
                 critic_reviews[section_display] = criticsReviewHandler.getReviews()
@@ -526,11 +537,9 @@ class MetacriticScrapper:
         else:
             # MOVIES
             criticsReviewHandler = MetacriticReviewAPIHandler(
-                critics_reviews_base_link, user_agent=self.USER_AGENT, isCritics=True
-            )
+                critics_reviews_base_link, user_agent=self.USER_AGENT, isCritics=True)
             userReviewHandler = MetacriticReviewAPIHandler(
-                user_reviews_base_link, user_agent=self.USER_AGENT, isCritics=False
-            )
+                user_reviews_base_link, user_agent=self.USER_AGENT, isCritics=False)
 
             critic_reviews["_default"] = criticsReviewHandler.getReviews()
             user_reviews["_default"] = userReviewHandler.getReviews()
@@ -538,7 +547,8 @@ class MetacriticScrapper:
             main_soup = self._loadPageFromUrl(main_page_link)
             media_details = self._extractMovieDetails(main_soup)
             media_details["cast"] = self._extractCastFromCredits(
-                slug=current_element_title, browse_type=self.pagination_info["browse"]
+                slug=current_element_title,
+                browse_type=self.pagination_info["browse"]
             )
 
         return MediaInfoPages(
@@ -546,7 +556,7 @@ class MetacriticScrapper:
             main_page=main_soup,
             critic_reviews=critic_reviews,
             user_reviews=user_reviews,
-            media_details=media_details,
+            media_details=media_details
         )
 
         # We need to call api links for critics cause of lazy load :(  , either critic or user
