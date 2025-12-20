@@ -16,11 +16,8 @@ def load_json(path: Path) -> dict:
 
 
 def extract_title(data: dict) -> str | None:
-    return (
-        data.get("title")
-        or data.get("tv_title")
-        or data.get("game_title")
-    )
+    return data.get("title") or data.get("tv_title") or data.get("game_title")
+
 
 # DIM MEDIA INFO
 
@@ -28,27 +25,41 @@ def extract_title(data: dict) -> str | None:
 def build_mediainfo_rows(data, media_type):
     md = data.get("media_details", {})
     media_info_id = uuid.uuid4()
-    genre_rows = [{"ref_id": media_info_id, "genre_title": g.strip()}
-                  for g in md.get("genres", [])]
-    companies = [("developer", d) for d in md.get("developers", [])]+[("publisher", p) for p in md.get(
-        "publishers", [])]+[("production_companies", pc) for pc in md.get("production_companies", [])]
-    company_rows = [{"ref_id": media_info_id, "company_role": cr, "company_name": cn}
-                    for cr, cn in companies]
+    genre_rows = [
+        {"ref_id": media_info_id, "genre_title": g.strip()}
+        for g in md.get("genres", [])
+    ]
+    companies = (
+        [("developer", d) for d in md.get("developers", [])]
+        + [("publisher", p) for p in md.get("publishers", [])]
+        + [("production_companies", pc) for pc in md.get("production_companies", [])]
+    )
+    company_rows = [
+        {"ref_id": media_info_id, "company_role": cr, "company_name": cn}
+        for cr, cn in companies
+    ]
 
     primary_title = extract_title(data)
-    return {
-        media_info_id: {
-            "primary_title": primary_title,
-            "title_language": md.get("original_language"),
-            "original_title": md.get("original_title"),
-            "media_type": media_type,
-            "duration": md.get("duration"),
-            "description": md.get("summary"),
-            "release_date": md.get("initial_release_date") or md.get("release_date"),
-            "PEGI_MPA_Rating": md.get("rating"),
-            "genre_id": [],
-            "company_id": [],
-        }}, genre_rows, company_rows
+    return (
+        {
+            media_info_id: {
+                "primary_title": primary_title,
+                "title_language": md.get("original_language"),
+                "original_title": md.get("original_title"),
+                "media_type": media_type,
+                "duration": md.get("duration"),
+                "description": md.get("summary"),
+                "release_date": md.get("initial_release_date")
+                or md.get("release_date"),
+                "PEGI_MPA_Rating": md.get("rating"),
+                "genre_id": [],
+                "company_id": [],
+            }
+        },
+        genre_rows,
+        company_rows,
+    )
+
 
 # REVIEWS EXTRACTION
 
@@ -61,6 +72,7 @@ def extract_all_reviews(data):
     for section, section_reviews in data.get("user_reviews", {}).items():
         reviews.append((section, section_reviews))
     return reviews
+
 
 # FACT REVIEWS (DFR)
 
@@ -83,7 +95,7 @@ def build_fact_rows(data, mediainfo_id, section_type):
                     "section_id": None,
                     "reviewer_id": None,
                     "media_info_id": mediainfo_id,
-                    "rating": r.get("rating")
+                    "rating": r.get("rating"),
                 }
             }
             # Append time
@@ -92,26 +104,28 @@ def build_fact_rows(data, mediainfo_id, section_type):
                 year, month, day = post_date.split("-")
             else:
                 year, month, day = (None, None, None)
-            time_rows.append({
-                "year": year,
-                "month": month,
-                "day": day,
-                "ref_id": review_id
-            })
+            time_rows.append(
+                {"year": year, "month": month, "day": day, "ref_id": review_id}
+            )
             # Append reviewer
-            reviewer_rows.append({
-                "association": r.get("company"),
-                "reviewer_username": r.get("author"),
-                "is_critic": r.get("isCritic"),
-                "ref_id": review_id
-            })
+            reviewer_rows.append(
+                {
+                    "association": r.get("company"),
+                    "reviewer_username": r.get("author"),
+                    "is_critic": r.get("isCritic"),
+                    "ref_id": review_id,
+                }
+            )
             # Append platform
-            section_rows.append({
-                "section_type": section_type,
-                "section_name": section,
-                "ref_id": review_id
-            })
+            section_rows.append(
+                {
+                    "section_type": section_type,
+                    "section_name": section,
+                    "ref_id": review_id,
+                }
+            )
     return review_rows, time_rows, reviewer_rows, section_rows
+
 
 # ref_uuid is either media_info_id or review_id
 
@@ -124,15 +138,20 @@ def map_distinct_values(new_rows_to_add, distinct_value_set, pk_attributes):
         del new_row["ref_id"]
         # create a key so that for each pk_att: key = "lower(new_data[pk_att[0]])lower(new_data[pk_att[1]])..."
         distinct_pk_key = "".join(
-            str(new_row[pk_att]).lower() for pk_att in pk_attributes)
+            str(new_row[pk_att]).lower() for pk_att in pk_attributes
+        )
         if distinct_pk_key in distinct_value_set:
             distinct_value_set[distinct_pk_key]["refs"].append(ref_id)
         else:
             distinct_value_set[distinct_pk_key] = {
-                "id": uuid.uuid4(), "refs": [ref_id]} | new_row
+                "id": uuid.uuid4(),
+                "refs": [ref_id],
+            } | new_row
 
 
-def remap_foreign_keys_and_build_distinct_rows(main_rows, distinct_value_set, foreign_key_attribute):
+def remap_foreign_keys_and_build_distinct_rows(
+    main_rows, distinct_value_set, foreign_key_attribute
+):
     distinct_rows = []
     for distinct_row in distinct_value_set.values():
         for ref_id in distinct_row["refs"]:
@@ -153,15 +172,18 @@ def build_bridge_rows(main_rows, foreign_key_titles, main_title):
             if len(row[fk_title]) == 0:
                 del row[fk_title]
                 continue
-            fk_weight = 1/len(row[fk_title])
+            fk_weight = 1 / len(row[fk_title])
             for fk in row[fk_title]:
                 bridge_dfs[fk_title].append(
-                    {main_title: main_id, f"{fk_title}": fk, "weight": fk_weight})
+                    {main_title: main_id, f"{fk_title}": fk, "weight": fk_weight}
+                )
             del row[fk_title]
     return bridge_dfs
 
 
-def build_and_save_dataframe_from_rows(rows, output_filename, separator='|', id_attribute_names=["id"], is_dict=False):
+def build_and_save_dataframe_from_rows(
+    rows, output_filename, separator="|", id_attribute_names=["id"], is_dict=False
+):
     if is_dict:
         # data = {
         #     idrow1: {"colA": valA, "colB": valB},
@@ -175,8 +197,7 @@ def build_and_save_dataframe_from_rows(rows, output_filename, separator='|', id_
         #     {"id": 102, "age": 25, "score": 92},
         # ]
         df = pd.DataFrame.from_records(rows, index=id_attribute_names)
-    df.to_csv(OUTPUT_DIR / output_filename,
-              sep=separator, encoding="utf-8")
+    df.to_csv(OUTPUT_DIR / output_filename, sep=separator, encoding="utf-8")
 
 
 def main():
@@ -205,63 +226,79 @@ def main():
 
         for jf in cat_dir.glob("*.json"):
             data = load_json(jf)
-            to_add_media_info_row, to_add_genres, to_add_companies = build_mediainfo_rows(
-                data, media_type)
+            to_add_media_info_row, to_add_genres, to_add_companies = (
+                build_mediainfo_rows(data, media_type)
+            )
             media_info_id = list(to_add_media_info_row.keys())[0]
-            to_add_review_rows, to_add_timestamps, to_add_reviewers, to_add_sections = build_fact_rows(
-                data, media_info_id, section_type)
+            to_add_review_rows, to_add_timestamps, to_add_reviewers, to_add_sections = (
+                build_fact_rows(data, media_info_id, section_type)
+            )
 
             # Add new already known distinct rows
             media_rows |= to_add_media_info_row
             review_rows |= to_add_review_rows
 
             # Map new distinct values or add to already defined new rows that reference them to replace uuid later
+            map_distinct_values(to_add_genres, genre_connection, ["genre_title"])
             map_distinct_values(
-                to_add_genres, genre_connection, ["genre_title"])
-            map_distinct_values(to_add_companies, company_connection, [
-                                "company_name", "company_role"])
-            map_distinct_values(to_add_timestamps, time_connection, [
-                                "year", "month", "day"])
-            map_distinct_values(to_add_reviewers, reviewer_connection, [
-                                "reviewer_username", "association"])
-            map_distinct_values(to_add_sections, section_connection, [
-                                "section_name", "section_type"])
+                to_add_companies, company_connection, ["company_name", "company_role"]
+            )
+            map_distinct_values(
+                to_add_timestamps, time_connection, ["year", "month", "day"]
+            )
+            map_distinct_values(
+                to_add_reviewers,
+                reviewer_connection,
+                ["reviewer_username", "association"],
+            )
+            map_distinct_values(
+                to_add_sections, section_connection, ["section_name", "section_type"]
+            )
 
     # Remapping
     genre_rows = remap_foreign_keys_and_build_distinct_rows(
-        media_rows, genre_connection, "genre_id")
+        media_rows, genre_connection, "genre_id"
+    )
     company_rows = remap_foreign_keys_and_build_distinct_rows(
-        media_rows, company_connection, "company_id")
+        media_rows, company_connection, "company_id"
+    )
     time_rows = remap_foreign_keys_and_build_distinct_rows(
-        review_rows, time_connection, "time_id")
+        review_rows, time_connection, "time_id"
+    )
     reviewer_rows = remap_foreign_keys_and_build_distinct_rows(
-        review_rows, reviewer_connection, "reviewer_id")
+        review_rows, reviewer_connection, "reviewer_id"
+    )
     section_rows = remap_foreign_keys_and_build_distinct_rows(
-        review_rows, section_connection, "section_id")
+        review_rows, section_connection, "section_id"
+    )
 
     # Build bridge tables for media_info
     bridge_dfs_media_info = build_bridge_rows(
-        media_rows, ["genre_id", "company_id"], "media_id")
+        media_rows, ["genre_id", "company_id"], "media_id"
+    )
     bridge_media_genre_rows = bridge_dfs_media_info["genre_id"]
     bridge_media_company_rows = bridge_dfs_media_info["company_id"]
 
     # DataFrames and CSVs
-    build_and_save_dataframe_from_rows(
-        media_rows, "media_info.csv", is_dict=True)
+    build_and_save_dataframe_from_rows(media_rows, "media_info.csv", is_dict=True)
 
     build_and_save_dataframe_from_rows(
-        bridge_media_genre_rows, "bridge_media_genre.csv", id_attribute_names=["media_id", "genre_id"])
+        bridge_media_genre_rows,
+        "bridge_media_genre.csv",
+        id_attribute_names=["media_id", "genre_id"],
+    )
 
     build_and_save_dataframe_from_rows(
-        bridge_media_company_rows, "bridge_media_company.csv", id_attribute_names=["media_id", "company_id"])
+        bridge_media_company_rows,
+        "bridge_media_company.csv",
+        id_attribute_names=["media_id", "company_id"],
+    )
 
     build_and_save_dataframe_from_rows(genre_rows, "genres.csv")
 
-    build_and_save_dataframe_from_rows(
-        company_rows, "companies.csv")
+    build_and_save_dataframe_from_rows(company_rows, "companies.csv")
 
-    build_and_save_dataframe_from_rows(
-        review_rows, "reviews.csv", is_dict=True)
+    build_and_save_dataframe_from_rows(review_rows, "reviews.csv", is_dict=True)
 
     build_and_save_dataframe_from_rows(time_rows, "time.csv")
 
