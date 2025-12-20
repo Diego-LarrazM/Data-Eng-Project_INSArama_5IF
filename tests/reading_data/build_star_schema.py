@@ -2,6 +2,9 @@ import json
 import uuid
 import pandas as pd
 from pathlib import Path
+# from sklearn.cluster import HDBSCAN
+# from sklearn.metrics.pairwise import cosine_distances
+# from sentence_transformers import SentenceTransformer
 
 
 ROOT_DIR = Path(__file__).resolve().parent
@@ -182,7 +185,7 @@ def build_bridge_rows(main_rows, foreign_key_titles, main_title):
 
 
 def build_and_save_dataframe_from_rows(
-    rows, output_filename, separator="|", id_attribute_names=["id"], is_dict=False
+    rows, output_filename = None, separator="|", id_attribute_names=["id"], is_dict=False
 ):
     if is_dict:
         # data = {
@@ -197,8 +200,109 @@ def build_and_save_dataframe_from_rows(
         #     {"id": 102, "age": 25, "score": 92},
         # ]
         df = pd.DataFrame.from_records(rows, index=id_attribute_names)
-    df.to_csv(OUTPUT_DIR / output_filename, sep=separator, encoding="utf-8")
+    if(output_filename) : df.to_csv(OUTPUT_DIR / output_filename, sep=separator, encoding="utf-8")
+    return df
 
+
+
+# def get_embeddings_of(listOfElements):
+#     model = SentenceTransformer('all-MiniLM-L6-v2')
+#     return model.encode(listOfElements)
+
+# def cluster_attribute_embedding(dataframe, attribute, output_label):
+#     embeddings = get_embeddings_of(dataframe[attribute].tolist())
+#     dist_matrix = cosine_distances(embeddings)
+#     clusterer = HDBSCAN(
+#         min_cluster_size=2,
+#         metric='precomputed'
+#     )
+#     dataframe[output_label] = clusterer.fit_predict(dist_matrix)
+
+def preprocess_title(title):
+    import spacy
+    nlp = spacy.load("en_core_web_sm", disable=["parser", "ner"])
+    doc = nlp(title.lower())
+    tokens = [token.lemma_ for token in doc if not token.is_stop and token.is_alpha]
+    return set(tokens)
+
+# Step 2: Compute pairwise Jaccard similarity
+def jaccard(set1, set2):
+    return len(set1 & set2) / len(set1 | set2)
+stopwords = {"the", "of", "a", "an", "and", "in", "on", "at", "ii", "iii", "iv", "v", "vi","vii","viii", "ix", "x", "1", "2", "3", "4", "5"," 6", "7", "8", "9", "10", "100", "1000" "season", "part", "re", "release", "remastered"}
+
+def cluster_attribute_jaccard(dataframe, attribute, output_label, type_attribute = None, threshold = 0.2, og_indexes = ["id"]):
+    from itertools import combinations
+    import networkx as nx
+
+    def create_jaccard_similarity_graph(df, token_col, type_col, threshold):
+        # Collect all pairs above threshold
+        G = nx.Graph()
+        G.add_nodes_from(df.index)
+        # instead of titles we use sets of tokens (ex: {"super", "mario", "galaxy"}) and compare each other by combinations of 2
+        for (i, t1), (j, t2) in combinations(enumerate(df[token_col]), 2): 
+            # Skip if different media types
+            if type_col and df[type_col].iloc[i] != df[type_col].iloc[j]:
+                continue
+            sim = len(t1 & t2) / len(t1 | t2)  # Jaccard similarity
+            if sim >= threshold:
+                G.add_edge(i, j)
+        return G
+    
+    def find_group_label(df, attribute, cluster):
+        """
+        df: DataFrame
+        token_col: column containing sets of tokens
+        cluster: list of row indices in this cluster
+
+        returns: string of sequential common
+        """
+        # Split title in words
+        split_titles = [df[attribute].iloc[idx].split() for idx in cluster]
+        # Get largest continuous common words pattern
+        label_elements = []
+        for words in zip(*split_titles):
+            if all(w == words[0] for w in words):
+                label_elements.append(words[0])
+        return " ".join(label_elements)
+    
+    df = dataframe.reset_index(drop=False) # use positional index for efficiency
+    df[output_label] = "Standalone"
+    df["_tokens"] = df[attribute].apply(lambda t: set(t.lower().replace('.', '').split()) - stopwords)
+    clusters_graph = create_jaccard_similarity_graph(df, "_tokens", type_attribute,  threshold)
+    clusters = [c for c in nx.connected_components(clusters_graph) if len(c) > 1] # clusters = sets of nodes connected by edges [{node1, node2, ...}, {...}, ...]
+
+    for cluster in clusters:
+        group_label = find_group_label(df, attribute, cluster)
+        if group_label:
+            df.loc[list(cluster), output_label] = group_label # map for each element of cluster their group label
+
+    df.drop(columns=["_tokens"], inplace=True)
+    df.set_index(og_indexes, inplace=True) # restore indexes
+    return df
+
+    
+
+
+    # Map titles to cluster IDs and Assign clean franchise labels
+    # title_to_cluster = {}
+    # cluster_names = {}
+    # for cluster_id, cluster in enumerate(clusters):
+    #     for title in cluster:
+    #         title_to_cluster[title] = cluster_id
+
+    # dataframe[output_label] = dataframe[attribute].map(title_to_cluster)
+
+    # # Step 6: 
+    # cluster_names = {}
+    # for cluster_id, cluster in enumerate(clusters):
+    #     # Collect all tokens in cluster
+    #     cluster_tokens = [token for t in cluster for token in dataframe.loc[dataframe[attribute]==t, '_tokens'].values[0]]
+    #     # Pick top N words
+    #     most_common_words = [word for word, count in Counter(cluster_tokens).most_common(top_words)]
+    #     cluster_names[cluster_id] = ' '.join(most_common_words).title()  # Capitalize
+
+    # dataframe[output_label] = dataframe[output_label + "_id"].map(cluster_names)
+    # pairs_df.to_csv(OUTPUT_DIR / "jaccard.csv", sep='|', encoding="utf-8")
 
 def main():
     # Sets of distinct value : [list of uuids that use this value as a dim]
@@ -280,7 +384,9 @@ def main():
     bridge_media_company_rows = bridge_dfs_media_info["company_id"]
 
     # DataFrames and CSVs
-    build_and_save_dataframe_from_rows(media_rows, "media_info.csv", is_dict=True)
+    media_df = build_and_save_dataframe_from_rows(media_rows, is_dict=True)
+    media_df = cluster_attribute_jaccard(media_df, "primary_title", "franchise", type_attribute="media_type")
+    media_df.to_csv(OUTPUT_DIR / "media_info.csv", sep='|', encoding="utf-8")
 
     build_and_save_dataframe_from_rows(
         bridge_media_genre_rows,
