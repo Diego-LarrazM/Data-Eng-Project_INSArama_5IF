@@ -2,6 +2,8 @@ import json
 import uuid
 import pandas as pd
 from pathlib import Path
+from itertools import combinations
+import networkx as nx
 # from sklearn.cluster import HDBSCAN
 # from sklearn.metrics.pairwise import cosine_distances
 # from sentence_transformers import SentenceTransformer
@@ -218,33 +220,45 @@ def build_and_save_dataframe_from_rows(
 #     )
 #     dataframe[output_label] = clusterer.fit_predict(dist_matrix)
 
-def preprocess_title(title):
-    import spacy
-    nlp = spacy.load("en_core_web_sm", disable=["parser", "ner"])
-    doc = nlp(title.lower())
-    tokens = [token.lemma_ for token in doc if not token.is_stop and token.is_alpha]
-    return set(tokens)
+# def preprocess_title(title):
+#     import spacy
+#     nlp = spacy.load("en_core_web_sm", disable=["parser", "ner"])
+#     doc = nlp(title.lower())
+#     tokens = [token.lemma_ for token in doc if not token.is_stop and token.is_alpha]
+#     return set(tokens)
 
-# Step 2: Compute pairwise Jaccard similarity
-def jaccard(set1, set2):
-    return len(set1 & set2) / len(set1 | set2)
-stopwords = {"the", "of", "a", "an", "and", "in", "on", "at", "ii", "iii", "iv", "v", "vi","vii","viii", "ix", "x", "1", "2", "3", "4", "5"," 6", "7", "8", "9", "10", "100", "1000" "season", "part", "re", "release", "remastered"}
 
-def cluster_attribute_jaccard(dataframe, attribute, output_label, type_attribute = None, threshold = 0.2, og_indexes = ["id"]):
-    from itertools import combinations
-    import networkx as nx
+STOPWORDS = {"the", "of", "a", "an", "and", "in", "on", "at", "ii", "iii", "iv", "v", "vi","vii","viii", "ix", "x", "1", "2", "3", "4", "5","6", "7", "8", "9", "10", "season", "part", "re", "release", "remastered"}
+def cluster_attribute_jaccard(dataframe, attribute, output_label, type_attribute = None, default_value = None, threshold = 0.2, og_indexes = ["id"], blacklist_types = []):
+
+    def extensive_split(string_value):
+        splitted = string_value.lower().split()
+        if len(splitted) == 1:
+            splitted = splitted[0].split("-")
+        return splitted
+
+    def tokenize(string_value):
+        return [token for token in extensive_split(string_value) if token not in STOPWORDS]
+
+    def jaccard_similarity(set1, set2):
+        s1 = set(set1)
+        s2 = set(set2)
+        return len(s1 & s2) / len(s1 | s2) 
 
     def create_jaccard_similarity_graph(df, token_col, type_col, threshold):
         # Collect all pairs above threshold
         G = nx.Graph()
-        G.add_nodes_from(df.index)
+        
+        if blacklist_types:
+            df_search = df[~df[type_col].isin(blacklist_types)]
+        else:
+            df_search = df
         # instead of titles we use sets of tokens (ex: {"super", "mario", "galaxy"}) and compare each other by combinations of 2
-        for (i, t1), (j, t2) in combinations(enumerate(df[token_col]), 2): 
+        for (i, t1), (j, t2) in combinations(df_search[token_col].items(), 2): 
             # Skip if different media types
-            if type_col and df[type_col].iloc[i] != df[type_col].iloc[j]:
+            if type_col and df_search[type_col].iloc[i] != df_search[type_col].iloc[j]:
                 continue
-            sim = len(t1 & t2) / len(t1 | t2)  # Jaccard similarity
-            if sim >= threshold:
+            if jaccard_similarity(t1,t2) >= threshold:
                 G.add_edge(i, j)
         return G
     
@@ -257,7 +271,7 @@ def cluster_attribute_jaccard(dataframe, attribute, output_label, type_attribute
         returns: string of sequential common
         """
         # Split title in words
-        split_titles = [df[attribute].iloc[idx].split() for idx in cluster]
+        split_titles = [extensive_split(df[attribute].iloc[idx]) for idx in cluster]
         # Get largest continuous common words pattern
         label_elements = []
         for words in zip(*split_titles):
@@ -265,11 +279,13 @@ def cluster_attribute_jaccard(dataframe, attribute, output_label, type_attribute
                 label_elements.append(words[0])
         return " ".join(label_elements)
     
+    
     df = dataframe.reset_index(drop=False) # use positional index for efficiency
-    df[output_label] = "Standalone"
-    df["_tokens"] = df[attribute].apply(lambda t: set(t.lower().replace('.', '').split()) - stopwords)
+    df[output_label] = default_value
+    df["_tokens"] = df[attribute].apply(tokenize) 
+    # clusters = sets of nodes connected by edges [{node1, node2, ...}, {...}, ...], here nodes are indexes
     clusters_graph = create_jaccard_similarity_graph(df, "_tokens", type_attribute,  threshold)
-    clusters = [c for c in nx.connected_components(clusters_graph) if len(c) > 1] # clusters = sets of nodes connected by edges [{node1, node2, ...}, {...}, ...]
+    clusters = [c for c in nx.connected_components(clusters_graph) if len(c) > 1] 
 
     for cluster in clusters:
         group_label = find_group_label(df, attribute, cluster)
@@ -280,29 +296,6 @@ def cluster_attribute_jaccard(dataframe, attribute, output_label, type_attribute
     df.set_index(og_indexes, inplace=True) # restore indexes
     return df
 
-    
-
-
-    # Map titles to cluster IDs and Assign clean franchise labels
-    # title_to_cluster = {}
-    # cluster_names = {}
-    # for cluster_id, cluster in enumerate(clusters):
-    #     for title in cluster:
-    #         title_to_cluster[title] = cluster_id
-
-    # dataframe[output_label] = dataframe[attribute].map(title_to_cluster)
-
-    # # Step 6: 
-    # cluster_names = {}
-    # for cluster_id, cluster in enumerate(clusters):
-    #     # Collect all tokens in cluster
-    #     cluster_tokens = [token for t in cluster for token in dataframe.loc[dataframe[attribute]==t, '_tokens'].values[0]]
-    #     # Pick top N words
-    #     most_common_words = [word for word, count in Counter(cluster_tokens).most_common(top_words)]
-    #     cluster_names[cluster_id] = ' '.join(most_common_words).title()  # Capitalize
-
-    # dataframe[output_label] = dataframe[output_label + "_id"].map(cluster_names)
-    # pairs_df.to_csv(OUTPUT_DIR / "jaccard.csv", sep='|', encoding="utf-8")
 
 def main():
     # Sets of distinct value : [list of uuids that use this value as a dim]
@@ -410,7 +403,9 @@ def main():
 
     build_and_save_dataframe_from_rows(reviewer_rows, "reviewers.csv")
 
-    build_and_save_dataframe_from_rows(section_rows, "sections.csv")
+    section_df = build_and_save_dataframe_from_rows(section_rows)
+    section_df = cluster_attribute_jaccard(section_df, "section_name", "section_group", type_attribute="section_type", blacklist_types=["Season", "Display"])
+    section_df.to_csv(OUTPUT_DIR / "sections.csv" , sep='|', encoding="utf-8")
 
 
 if __name__ == "__main__":
