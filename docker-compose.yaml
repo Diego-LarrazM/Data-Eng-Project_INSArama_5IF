@@ -21,6 +21,20 @@ volumes: # Volume containing source data for ingestion : Scrapped metacritic dat
     driver_opts:
       device: Data/source_data
       o: bind
+
+  INSARAMA_REVIEWS_DATAWAREHOUSE_DATA: 
+    name: insarama_reviews_datawarehouse_data
+    driver: local
+    driver_opts:
+      device: Data/datawarehouse/reviews
+      o: bind
+
+  INSARAMA_MEDIA_DATAWAREHOUSE_DATA: 
+    name: insarama_media_datawarehouse_data
+    driver: local
+    driver_opts:
+      device: Data/datawarehouse/media_graph
+      o: bind
     
 networks:
   INSARAMA_NET:
