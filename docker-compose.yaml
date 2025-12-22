@@ -2,18 +2,26 @@ name: insarama
 
 include:
   # Data Piepeline Orchestrator
-  - path: Airflow/compose.airflow.yaml
-    project_directory: Airflow/
-    env_file: Airflow/.env
+  - path: DockerETL_Images/Airflow/compose.airflow.yaml
+    project_directory: DockerETL_Images/Airflow/
+    env_file: DockerETL_Images/Airflow/.env
   # Data Warehouse
-  - path: DataWarehouse/compose.datawarehouse.yaml
-    project_directory: DataWarehouse/
-    env_file: DataWarehouse/.env
+  - path: DockerETL_Images/DataWarehouse/compose.datawarehouse.yaml
+    project_directory: DockerETL_Images/DataWarehouse/
+    env_file: DockerETL_Images/DataWarehouse/.env
   # Dashboards
-  - path: Grafana/compose.grafana.yaml
-    project_directory: Grafana/
-    env_file: Grafana/.env
+  - path: DockerETL_Images/Grafana/compose.grafana.yaml
+    project_directory: DockerETL_Images/Grafana/
+    env_file: DockerETL_Images/Grafana/.env
 
+volumes: # Volume containing source data for ingestion : Scrapped metacritic data and IMDB data
+  INSARAMA_SOURCE_DATA:
+    name: insarama_source_data
+    driver: local
+    driver_opts:
+      device: Data/source_data
+      o: bind
+    
 networks:
   INSARAMA_NET:
     name: insarama_net

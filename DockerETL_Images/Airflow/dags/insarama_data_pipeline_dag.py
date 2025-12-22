@@ -3,6 +3,7 @@ import os
 from dotenv import load_dotenv
 from datetime import timedelta
 from airflow.utils.dates import days_ago
+from docker.types import Mount
 
 load_dotenv("/opt/airflow/.env")
 
@@ -43,6 +44,13 @@ with DAG(
             "MONGO_DB": os.getenv("MONGO_DB"),
             "MONGO_MEDIA_COLLECTION": os.getenv("MONGO_MEDIA_COLLECTION"),
         },
+        mounts=[
+            Mount(
+                source="insarama_source_data",
+                target="/data/source_data",
+                type="volume"
+            )
+        ] # etc... to the rest
     )
 
     # with TaskGroup(group_id='Staging') as Staging_Group:
