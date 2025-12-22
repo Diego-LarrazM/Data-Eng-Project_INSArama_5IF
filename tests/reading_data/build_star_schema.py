@@ -26,8 +26,16 @@ def extract_title(data: dict) -> str | None:
 
 # DIM MEDIA INFO
 
+def extract_year_from_release_date(release_date: str | None) -> int | None:
+    if not isinstance(release_date, str):
+        return None
+    try:
+        return int(release_date.strip()[-4:])
+    except ValueError:
+        return None
 
-def build_mediainfo_rows(data, media_type):
+
+def build_mediainfo_rows(data, media_type, year_to_titles):
     md = data.get("media_details", {})
     media_info_id = uuid.uuid4()
     genre_rows = [
@@ -45,6 +53,8 @@ def build_mediainfo_rows(data, media_type):
     ]
 
     primary_title = extract_title(data)
+    release_date = md.get("initial_release_date") or md.get("release_date")
+    year_to_titles.add(extract_year_from_release_date(release_date))
     return (
         {
             media_info_id: {
@@ -227,6 +237,7 @@ def build_and_save_dataframe_from_rows(
 #     tokens = [token.lemma_ for token in doc if not token.is_stop and token.is_alpha]
 #     return set(tokens)
 
+# GROUPING
 
 STOPWORDS = {"the", "of", "a", "an", "and", "in", "on", "at", "ii", "iii", "iv", "v", "vi","vii","viii", "ix", "x", "1", "2", "3", "4", "5","6", "7", "8", "9", "10", "season", "part", "re", "release", "remastered"}
 def cluster_attribute_jaccard(dataframe, attribute, output_label, type_attribute = None, default_value = None, threshold = 0.2, og_indexes = ["id"], blacklist_types = []):
@@ -271,12 +282,14 @@ def cluster_attribute_jaccard(dataframe, attribute, output_label, type_attribute
         returns: string of sequential common
         """
         # Split title in words
-        split_titles = [extensive_split(df[attribute].iloc[idx]) for idx in cluster]
+        split_titles = [extensive_split(df[attribute].iloc[idx]) for idx in cluster] # ["The", Legend", "of", "Zelda"], ["The", "Legend", "of", "Zelda", "II", "The", "Adventure", "of", "Link"]
         # Get largest continuous common words pattern
         label_elements = []
         for words in zip(*split_titles):
             if all(w == words[0] for w in words):
                 label_elements.append(words[0])
+            else:
+                break
         return " ".join(label_elements)
     
     
@@ -298,6 +311,9 @@ def cluster_attribute_jaccard(dataframe, attribute, output_label, type_attribute
 
 
 def main():
+    # Merging utilities
+    merging_utilities = {"year_to_titles": set()}
+
     # Sets of distinct value : [list of uuids that use this value as a dim]
     genre_connection = {}
     company_connection = {}
@@ -324,7 +340,7 @@ def main():
         for jf in cat_dir.glob("*.json"):
             data = load_json(jf)
             to_add_media_info_row, to_add_genres, to_add_companies = (
-                build_mediainfo_rows(data, media_type)
+                build_mediainfo_rows(data, media_type, merging_utilities["year_to_titles"])
             )
             media_info_id = list(to_add_media_info_row.keys())[0]
             to_add_review_rows, to_add_timestamps, to_add_reviewers, to_add_sections = (
