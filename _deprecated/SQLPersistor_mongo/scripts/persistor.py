@@ -1,6 +1,6 @@
 from contextlib import contextmanager
 from sqlalchemy import create_engine, text
-from sqlalchemy.orm import Session, DeclarativeBase
+from sqlalchemy.orm import Session
 from models.base import DeclarativeMeta, ModelType
 from utils.execution import *
 from utils.batch_generator import *
@@ -71,6 +71,15 @@ class Persistor:
             session.add_all(obj_list)
             self.last_execution_status = SUCCESS
         return self.last_execution_status
-    
-    def orm_wrapper(self, orm_model_class: DeclarativeBase) -> Callable[[dict], DeclarativeBase]:
-        return lambda data_dict: orm_model_class(**data_dict)
+
+    def persist_from(
+        self,
+        iterator: Iterable[ModelType],
+        batch_size: int = 1,
+        session: Session = None,
+    ):
+        batches = BatchGenerator(generator=iterator, batch_size=batch_size)
+        for batch in batches:
+            self.persist_all(batch, session)
+            print(self.last_execution_status)
+        return self.last_execution_status

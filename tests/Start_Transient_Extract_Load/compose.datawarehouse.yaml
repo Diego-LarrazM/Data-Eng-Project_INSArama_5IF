@@ -22,6 +22,15 @@ services:
     networks:
       - INSARAMA_NET
 
+  insm_mongo_transient_serv:
+    image: mongo:7.0
+    container_name: ${MONGO_HOST_NAME}
+    ports:
+      - "${MONGO_PORT}:${MONGO_PORT}"
+    command: --bind_ip_all --port ${MONGO_PORT}
+    networks:
+      - INSARAMA_NET
+
 networks:
   INSARAMA_NET:
     name: ${INSARAMA_NET}

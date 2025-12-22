@@ -1,19 +1,18 @@
 import os
 from urllib.parse import quote_plus
-from pymongo import MongoClient
-from extractor_factory import ExtractorFactory
+
+from mongo_extractor_factory import MongoExtractorFactory
 from persistor import Persistor
 from models import *  # Importe TOUS les ORM, NECESSAIRE POUR 'create_tables'
 
 # ------------- < Constants > -------------
 # Read
-# TF_OUT_DATA_DIR = os.environ.get("OUTPUT_DATA_FILE_DIRECTORY")
-R_HOST = "localhost"  # os.environ.get("MONGO_HOST_NAME")
+R_HOST = os.environ.get("MONGO_HOST_NAME")
 R_PORT = int(os.environ.get("MONGO_PORT"))
 R_USERNAME = ""  # os.environ.get("MONGO_USERNAME")
 R_PASSWORD = ""  # os.environ.get("MONGO_PASSWORD")
 MONGO_DB = os.environ.get("MONGO_DB")
-WITH_ID = False  # Whether to include _id field from MongoDB documents
+REPLICA_SET_NAME = os.environ.get("MONGO_RSET_NAME")
 
 credentials = ""
 if R_USERNAME and R_PASSWORD:
@@ -50,12 +49,10 @@ COLLECTIONS = [  # ORDER MATTERS WITH RELATIONSHIPS !
 if __name__ == "__main__":
 
     print(f"[ Connecting to (Mongo): <{MONGO_URL}>... ]")
-    client = MongoClient(
-            host=MONGO_URL
-    )  # or AsyncMongoClient for async operations
-    transient_db = client[MONGO_DB]
-    
-    print("<-- Connected to MongoDB -->\n")
+
+    ex_factory = MongoExtractorFactory(mongo_conn_url=MONGO_URL, r_database=MONGO_DB)
+
+    print("<-- MongoExtractorFactory connected -->\n")
 
     print(f"[ Connecting to (Postgres): <{DW_POSTGRES_DB_URL}>... ]")
 
@@ -68,18 +65,14 @@ if __name__ == "__main__":
     print(f"[ Loading to DataWarehouse ]")
     print(f"src   : <{MONGO_URL}>")
     print(f"target: <{DW_POSTGRES_DB_URL}>\n")
-    
-    with persistor.session_scope() as session:
-        for collection_name, orm in COLLECTIONS:
-            for batch in ExtractorFactory().build_extractor(
-                iter=transient_db[collection_name].find(
-                    {}, {"_id": int(WITH_ID)}, batch_size=DW_POSTGRES_LOAD_BATCH_SIZE
-                ),
-                batch_size=DW_POSTGRES_LOAD_BATCH_SIZE,
-                wrapper=persistor.orm_wrapper(orm)
-            ):
-                persistor.persist_all(batch, session=session)
 
-            print(f"<-- Loaded {collection_name} Data -->\n")
+    with persistor.session_scope() as session:
+        for collection_name, model in COLLECTIONS:
+            extractor = ex_factory(
+                collection_name, model, batch_size=DW_POSTGRES_LOAD_BATCH_SIZE
+            )
+            persistor.persist_from(
+                extractor, batch_size=DW_POSTGRES_LOAD_BATCH_SIZE, session=session
+            )
 
     print(f"\n<-- Transaction status: {persistor.last_execution_status} -->")
