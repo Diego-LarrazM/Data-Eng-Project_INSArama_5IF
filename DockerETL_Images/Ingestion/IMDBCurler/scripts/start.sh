@@ -1,7 +1,7 @@
 #!/bin/sh
 set -e
 
-mkdir -p "$DATA_FILE_DIRECTORY"z
+mkdir -p "$DATA_FILE_DIRECTORY"
 
 echo "\n[Downloading] IMDB datasets from $IMDB_DATA_URL"
 echo "[Saving files] to $DATA_FILE_DIRECTORY/\n"
@@ -18,8 +18,8 @@ for file in $IMDB_FILES_TO_DOWNLOAD; do
     fi
     wget -q -nc -O "$DATA_FILE_DIRECTORY/$file.tsv.gz" "$IMDB_DATA_URL$file.tsv.gz" || \
       { echo "Download failed for $file"; exit 1; }
-    echo "Decompressing $DATA_FILE_DIRECTORY/$file.tsv.gz to $DATA_FILE_DIRECTORY/$file.csv"
-    echo "Completed $file downloaded to $DATA_FILE_DIRECTORY/$file.tsv.gz\n"
+    gzip -d "$DATA_FILE_DIRECTORY/$file.tsv.gz"
+    echo "Completed $file downloaded and decompressed to $DATA_FILE_DIRECTORY/$file.csv\n"
 
 done
 

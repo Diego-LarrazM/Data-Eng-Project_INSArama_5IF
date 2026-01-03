@@ -20,24 +20,24 @@ volumes: # Volume containing source data for ingestion : Scrapped metacritic dat
     driver: local
     driver_opts:
       device: Data/source_data
+      type: none
       o: bind
-
-  INSARAMA_REVIEWS_DATAWAREHOUSE_DATA: 
+  INSARAMA_REVIEWS_DATAWAREHOUSE_DATA:
     name: insarama_reviews_datawarehouse_data
     driver: local
     driver_opts:
       device: Data/datawarehouse/reviews
+      type: none
       o: bind
-
-  INSARAMA_MEDIA_DATAWAREHOUSE_DATA: 
-    name: insarama_media_datawarehouse_data
+  INSARAMA_DOCKERETL_IMAGES:
+    name: insarama_dockerETL_images
     driver: local
     driver_opts:
-      device: Data/datawarehouse/media_graph
+      type: none
+      device: DockerETL_Images
       o: bind
-    
 networks:
   INSARAMA_NET:
     name: insarama_net
-    driver: bridge  # simple isolation for usecase
+    driver: bridge # simple isolation for usecase
     external: false # enables docker compose down to remove named net

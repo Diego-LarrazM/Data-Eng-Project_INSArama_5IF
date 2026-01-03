@@ -16,11 +16,12 @@ if __name__ == "__main__":
     credentials = ""
     if USERNAME and PASSWORD:
         credentials = f"{quote_plus(USERNAME)}:{quote_plus(PASSWORD)}@"
-    mongo_url = f"mongodb://{credentials}{HOST}:{PORT}/"
+        auth_params = "?authSource=admin"
+    mongo_url = f"mongodb://{credentials}{HOST}:{PORT}/{auth_params}"
 
     loader = MongoLoader(mongo_conn_url=mongo_url, database=MONGO_DB)
 
-    loader.load_from_csv(f"{DATA_DIR}/title.principals.csv", "imdb_title_principals")
-    loader.load_from_csv(f"{DATA_DIR}/title.crew.csv", "imdb_title_crew")
-    loader.load_from_csv(f"{DATA_DIR}/name.basics.csv", "imdb_name_basics")
-    loader.load_from_csv(f"{DATA_DIR}/title.basics.csv", "imdb_title_basics")
+    loader.load_from_csv(f"{DATA_DIR}/title.principals.tsv", "imdb_title_principals")
+    loader.load_from_csv(f"{DATA_DIR}/title.crew.tsv", "imdb_title_crew")
+    loader.load_from_csv(f"{DATA_DIR}/name.basics.tsv", "imdb_name_basics")
+    loader.load_from_csv(f"{DATA_DIR}/title.basics.tsv", "imdb_title_basics")

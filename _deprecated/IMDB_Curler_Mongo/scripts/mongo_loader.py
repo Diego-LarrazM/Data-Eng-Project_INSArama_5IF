@@ -83,7 +83,7 @@ class MongoLoader:
         filter_func = MongoLoader._make_filter_func(filter_columns, filter_values_list)
 
         with open(file_path, "r", encoding="utf-8") as csv_file:
-            row_gen = csv.DictReader(csv_file, delimiter=";")
+            row_gen = csv.DictReader(csv_file, delimiter="\t")
 
             batch_gen = BatchGenerator(
                 generator=row_gen, batch_size=batch_size, filter_func=filter_func
