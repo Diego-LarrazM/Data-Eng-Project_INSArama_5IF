@@ -7,18 +7,18 @@ from models import *  # Importe TOUS les ORM, NECESSAIRE POUR 'create_tables'
 
 # ------------- < Constants > -------------
 # Read
-# TF_OUT_DATA_DIR = os.environ.get("OUTPUT_DATA_FILE_DIRECTORY")
-R_HOST = "localhost"  # os.environ.get("MONGO_HOST_NAME")
+R_HOST = os.environ.get("MONGO_HOST_NAME")
 R_PORT = int(os.environ.get("MONGO_PORT"))
-R_USERNAME = ""  # os.environ.get("MONGO_USERNAME")
-R_PASSWORD = ""  # os.environ.get("MONGO_PASSWORD")
+R_USERNAME = os.environ.get("MONGO_USERNAME")
+R_PASSWORD = os.environ.get("MONGO_PASSWORD")
 MONGO_DB = os.environ.get("MONGO_DB")
 WITH_ID = False  # Whether to include _id field from MongoDB documents
 
 credentials = ""
 if R_USERNAME and R_PASSWORD:
     credentials = f"{quote_plus(R_USERNAME)}:{quote_plus(R_PASSWORD)}@"
-MONGO_URL = f"mongodb://{credentials}{R_HOST}:{R_PORT}/"
+    auth_source = f"/?authSource=admin"
+MONGO_URL = f"mongodb://{credentials}{R_HOST}:{R_PORT}{auth_source}"
 
 # Write
 DW_POSTGRES_HOST = os.environ.get("DW_POSTGRES_HOST")
@@ -50,11 +50,9 @@ COLLECTIONS = [  # ORDER MATTERS WITH RELATIONSHIPS !
 if __name__ == "__main__":
 
     print(f"[ Connecting to (Mongo): <{MONGO_URL}>... ]")
-    client = MongoClient(
-            host=MONGO_URL
-    )  # or AsyncMongoClient for async operations
+    client = MongoClient(host=MONGO_URL)  # or AsyncMongoClient for async operations
     transient_db = client[MONGO_DB]
-    
+
     print("<-- Connected to MongoDB -->\n")
 
     print(f"[ Connecting to (Postgres): <{DW_POSTGRES_DB_URL}>... ]")
@@ -68,7 +66,7 @@ if __name__ == "__main__":
     print(f"[ Loading to DataWarehouse ]")
     print(f"src   : <{MONGO_URL}>")
     print(f"target: <{DW_POSTGRES_DB_URL}>\n")
-    
+
     with persistor.session_scope() as session:
         for collection_name, orm in COLLECTIONS:
             for batch in ExtractorFactory().build_extractor(
@@ -76,7 +74,7 @@ if __name__ == "__main__":
                     {}, {"_id": int(WITH_ID)}, batch_size=DW_POSTGRES_LOAD_BATCH_SIZE
                 ),
                 batch_size=DW_POSTGRES_LOAD_BATCH_SIZE,
-                wrapper=persistor.orm_wrapper(orm)
+                wrapper=persistor.orm_wrapper(orm),
             ):
                 persistor.persist_all(batch, session=session)
 

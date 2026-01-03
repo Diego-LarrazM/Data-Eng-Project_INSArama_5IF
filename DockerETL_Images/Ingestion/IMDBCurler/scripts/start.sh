@@ -18,8 +18,7 @@ for file in $IMDB_FILES_TO_DOWNLOAD; do
     fi
     wget -q -nc -O "$DATA_FILE_DIRECTORY/$file.tsv.gz" "$IMDB_DATA_URL$file.tsv.gz" || \
       { echo "Download failed for $file"; exit 1; }
-    gzip -d "$DATA_FILE_DIRECTORY/$file.tsv.gz"
-    echo "Completed $file downloaded and decompressed to $DATA_FILE_DIRECTORY/$file.csv\n"
+    echo "Completed $file downloaded to $DATA_FILE_DIRECTORY/$file.tsv.gz\n"
 
 done
 

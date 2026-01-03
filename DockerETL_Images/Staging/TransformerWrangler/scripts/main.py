@@ -14,8 +14,9 @@ if USERNAME and PASSWORD:
     credentials = f"{quote_plus(USERNAME)}:{quote_plus(PASSWORD)}@"
 mongo_url = f"mongodb://{credentials}{HOST}:{PORT}/"
 
-SOURCE_DATA_DIR = os.path.join(os.environ.get("DATA_FILE_DIRECTORY"), "/source_data")
-OUTPUT_DIR = os.path.join(os.environ.get("DATA_FILE_DIRECTORY"), "/processed_data")
+METACRITIC_SOURCE_DIR = os.environ.get("METACRITIC_DATA_FILE_DIRECTORY")
+IMDB_SOURCE_DIR = os.environ.get("IMDB_DATA_FILE_DIRECTORY")
+OUTPUT_DIR = os.environ.get("OUT_DATA_FILE_DIRECTORY")
 
 COLLECTIONS = [  # ORDER MATTERS WITH RELATIONSHIPS !
     # Bridged Entities
@@ -46,7 +47,7 @@ if __name__ == "__main__":
 
     for collection in COLLECTIONS:
         print(f"Loading collection: {collection}...")
-        if not loader.load_from_csv(f"{SOURCE_DATA_DIR}/{collection}.csv", collection):
+        if not loader.load_from_csv(f"{OUTPUT_DIR}/{collection}.csv", collection):
             raise Exception(f"Failed to load collection: {collection}!")
 
     print("All collections loaded successfully!")
