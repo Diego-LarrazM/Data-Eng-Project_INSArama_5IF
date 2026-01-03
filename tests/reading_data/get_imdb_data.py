@@ -284,7 +284,7 @@ def build_imdb_tconst_lookup_by_primary_title(
     return result
 
 
-def extract_roles_for_media(
+def build_roles_for_media(
     media_rows: dict,
     imdb_dir: Path,
     title_basics_path: Path,
