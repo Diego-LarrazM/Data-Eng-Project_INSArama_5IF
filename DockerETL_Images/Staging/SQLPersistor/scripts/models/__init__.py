@@ -5,7 +5,7 @@ from .bridge_media_genre import MediaGenreBridgeORM
 from .bridge_media_role import MediaRoleBridgeORM
 from .dim_franchise import FranchiseDimORM
 from .dim_media_info import MediaInfoDimORM
-from .dim_platform import PlatformDimORM
+from .dim_section import PlatformDimORM
 from .dim_reviewer import ReviewerDimORM
 from .dim_time import TimeDimORM
 from .obj_companies import CompanyORM

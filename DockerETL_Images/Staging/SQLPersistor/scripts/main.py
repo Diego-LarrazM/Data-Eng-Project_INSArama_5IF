@@ -33,9 +33,8 @@ COLLECTIONS = [  # ORDER MATTERS WITH RELATIONSHIPS !
     ("GENRES", GenreORM),
     ("ROLES", RoleORM),
     # Dimensions
-    ("DIM_FRANCHISE", FranchiseDimORM),
     ("DIM_MEDIA_INFO", MediaInfoDimORM),
-    ("DIM_PLATFORM", PlatformDimORM),
+    ("DIM_SECTION", SectionDimORM),
     ("DIM_REVIEWER", ReviewerDimORM),
     ("DIM_TIME", TimeDimORM),
     # Bridges

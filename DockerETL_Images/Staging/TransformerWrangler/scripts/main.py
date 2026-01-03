@@ -30,9 +30,8 @@ COLLECTIONS = [  # ORDER MATTERS WITH RELATIONSHIPS !
     "GENRES",
     "ROLES",
     # Dimensions
-    "DIM_FRANCHISE",
     "DIM_MEDIA_INFO",
-    "DIM_PLATFORM",
+    "DIM_SECTION",
     "DIM_REVIEWER",
     "DIM_TIME",
     # Bridges
@@ -144,25 +143,27 @@ def setup_metacritic_data():
 
     print("[ Saving to CSV... ]")
     MediaBuilder.build_and_save_dataframe_from_rows(
-        genre_rows, OUTPUT_DIR / "genres.csv"
+        genre_rows, OUTPUT_DIR / "GENRES.csv"
     )
     del genre_rows
 
     MediaBuilder.build_and_save_dataframe_from_rows(
-        company_rows, OUTPUT_DIR / "companies.csv"
+        company_rows, OUTPUT_DIR / "COMPANIES.csv"
     )
     del company_rows
 
     MediaBuilder.build_and_save_dataframe_from_rows(
-        review_rows, OUTPUT_DIR / "reviews.csv", is_dict=True
+        review_rows, OUTPUT_DIR / "FACT_REVIEWS.csv", is_dict=True
     )
     del review_rows
 
-    MediaBuilder.build_and_save_dataframe_from_rows(time_rows, OUTPUT_DIR / "time.csv")
+    MediaBuilder.build_and_save_dataframe_from_rows(
+        time_rows, OUTPUT_DIR / "DIM_TIME.csv"
+    )
     del time_rows
 
     MediaBuilder.build_and_save_dataframe_from_rows(
-        reviewer_rows, OUTPUT_DIR / "reviewers.csv"
+        reviewer_rows, OUTPUT_DIR / "DIM_REVIEWER.csv"
     )
     del reviewer_rows
 
@@ -176,7 +177,7 @@ def setup_metacritic_data():
         type_attribute="section_type",
         blacklist_types=["Season", "Display"],
     )
-    section_df.to_csv(OUTPUT_DIR / "sections.csv", sep="|", encoding="utf-8")
+    section_df.to_csv(OUTPUT_DIR / "DIM_SECTION.csv", sep="|", encoding="utf-8")
 
     print("< Finished with Metacritic >")
 
@@ -201,7 +202,7 @@ def setup_and_join_imdb_data_for_roles(media_rows, title_year_set):
     )
     del role_connection
 
-    MediaBuilder.build_and_save_dataframe_from_rows(role_rows, OUTPUT_DIR / "roles.csv")
+    MediaBuilder.build_and_save_dataframe_from_rows(role_rows, OUTPUT_DIR / "ROLES.csv")
     del role_rows
 
 
@@ -214,21 +215,21 @@ def setup_bridges(media_rows):
 
     MediaBuilder.build_and_save_dataframe_from_rows(
         bridge_dfs_media_info["genre_id"],
-        OUTPUT_DIR / "bridge_media_genre.csv",
+        OUTPUT_DIR / "BRIDGE_MEDIA_GENRE.csv",
         id_attribute_names=["media_id", "genre_id"],
     )
     del bridge_dfs_media_info["genre_id"]
 
     MediaBuilder.build_and_save_dataframe_from_rows(
         bridge_dfs_media_info["company_id"],
-        OUTPUT_DIR / "bridge_media_company.csv",
+        OUTPUT_DIR / "BRIDGE_MEDIA_COMPANY.csv",
         id_attribute_names=["media_id", "company_id"],
     )
     del bridge_dfs_media_info["company_id"]
 
     MediaBuilder.build_and_save_dataframe_from_rows(
         bridge_dfs_media_info["role_id"],
-        OUTPUT_DIR / "bridge_media_role.csv",
+        OUTPUT_DIR / "BRIDGE_MEDIA_ROLE.csv",
         id_attribute_names=["media_id", "role_id"],
     )
     del bridge_dfs_media_info
@@ -249,7 +250,7 @@ if __name__ == "__main__":
     media_df = MediaTokenUtils.cluster_attribute_jaccard(
         media_df, "primary_title", "franchise", type_attribute="media_type"
     )
-    media_df.to_csv(OUTPUT_DIR / "media_info.csv", sep="|", encoding="utf-8")
+    media_df.to_csv(OUTPUT_DIR / "DIM_MEDIA_INFO.csv", sep="|", encoding="utf-8")
 
     # Load to transient database (MongoDB)
     print(f"[ Loading transformed data to transient MongoDB at: <{mongo_url}>... ]")

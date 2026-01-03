@@ -69,40 +69,20 @@ class MediaTokenUtils:
 
         return runtime_equivalence and year_equivalence
 
-    def prepare_IMDB_title(title: str) -> set[str] | None:
-        if not title and not isinstance(title, str):
-            return None
-        title = title.lower()
-        # Remove startYear (1900–2099)
-        title = re.sub(r"\b(19|20)\d{2}\b", "", title)
-        # Remove empty brackets left after year removal
-        title = re.sub(r"[\(\[\{]\s*[\)\]\}]", "", title)
-        # Remove extra punctuation
-        title = re.sub(r"\s*[:;,\.\-–—]\s+", "", title)
-        # Collapse multiple spaces
-        title = re.sub(r"\s+", " ", title)
-        # Strip leading/trailing spaces
-        title = title.strip()
-        # Erase stopwords
-        tokens = set(title.split()) - IMDB_TITLE_STOPWORDS
-        return tokens
-
     def tokenize_IMDB_title(title: str) -> set[str] | None:
-        if not title and not isinstance(title, str):
+        if not title:
             return None
         title = title.lower()
         # Remove startYear (1900–2099)
         title = re.sub(r"\b(19|20)\d{2}\b", "", title)
-        # Remove empty brackets left after year removal
-        title = re.sub(r"[\(\[\{]\s*[\)\]\}]", "", title)
-        # Remove extra punctuation
-        title = re.sub(r"\s*[:;,\.\-–—]\s+", "", title)
+        # Remove non characters or nums
+        re.sub(r"[^\w\s]", " ", title)
         # Collapse multiple spaces
-        title = re.sub(r"\s+", " ", title)
+        # title = re.sub(r"\s+", " ", title)
         # Strip leading/trailing spaces
-        title = title.strip()
+        # title = title.strip()
         # Erase stopwords
-        tokens = set(title.split()) - IMDB_TITLE_STOPWORDS
+        tokens = set(re.findall(r"\w+", title))  # - IMDB_TITLE_STOPWORDS
         return tokens
 
     def jaccard_title_similarity(a: str, b: str) -> float:

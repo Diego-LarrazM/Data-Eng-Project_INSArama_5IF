@@ -205,7 +205,7 @@ class MediaBuilder:
         media_rows: dict,
         title_basics_path: Path,
         title_year_set: set,
-        chunksize: int = 4_000_000,
+        chunksize: int = 500_000,
     ) -> dict:
 
         print(f"[ Starting Join: finding common titles ... ]")
@@ -258,7 +258,7 @@ class MediaBuilder:
                 ),
                 axis=1,
             )
-            candidates = candidates[candidates["similarity"] >= 0.8]
+            candidates = candidates[candidates["similarity"] >= 0.85]
             print(f"MATCHES : {candidates.shape[0]}")
 
             MediaBuilder.map_best_candidate_to_target_title(
