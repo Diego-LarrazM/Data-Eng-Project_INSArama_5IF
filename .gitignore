@@ -24,3 +24,7 @@
 # Ignore data warehouse data files
 **/DataWarehouse/data/*
 **/Grafana/grafana_storage/*
+
+**/data/*
+**/output/*
+**/imdb/*
