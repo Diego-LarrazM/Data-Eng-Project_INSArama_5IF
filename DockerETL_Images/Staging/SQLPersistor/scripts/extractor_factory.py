@@ -11,9 +11,10 @@ class ExtractorFactory:
             iter: Iterator,
             batch_size: int,
             wrapper: Optional[Callable] = None,
-
         ):
-            self.cursor = BatchGenerator(generator=iter, batch_size=batch_size, wrapper=wrapper)
+            self.cursor = BatchGenerator(
+                generator=iter, batch_size=batch_size, wrapper=wrapper
+            )
 
         def __iter__(self):
             return self._extractor_gen()
@@ -33,5 +34,7 @@ class ExtractorFactory:
         if batch_size <= 0:
             raise Exception(f"Batch size must be > 0 (current: {batch_size})")
         return self._extractor(
-            iter=iter, batch_size=batch_size, wrapper=wrapper, 
+            iter=iter,
+            batch_size=batch_size,
+            wrapper=wrapper,
         )

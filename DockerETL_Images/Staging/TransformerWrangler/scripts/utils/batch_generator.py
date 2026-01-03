@@ -10,7 +10,7 @@ class BatchGenerator:
         generator: Generator[T, None, None] | Iterator[T],
         batch_size: int,
         filter_func: Optional[Callable[[T], bool]] = None,
-        wrapper: Optional[Callable[[T], R]] = None
+        wrapper: Optional[Callable[[T], R]] = None,
     ):
         # Generator taht takes a generator like ijson.kvitems(...) or csv reader
         # Takes a batch size
@@ -37,7 +37,7 @@ class BatchGenerator:
         for item in self.generator:
             if self.filter_func and not self.filter_func(item):
                 continue
-            if self.wrapper: 
+            if self.wrapper:
                 item = self.wrapper(item)
             batch.append(item)
             if len(batch) >= self.batch_size:

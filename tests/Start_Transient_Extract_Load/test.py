@@ -18,8 +18,12 @@ sys.path.insert(
 
 from DockerETL_Images.Staging.SQLPersistor.scripts.models import *
 from DockerETL_Images.Staging.SQLPersistor.scripts.persistor import Persistor
-from DockerETL_Images.Staging.SQLPersistor.scripts.extractor_factory import ExtractorFactory
-from DockerETL_Images.Staging.TransformerWrangler.scripts.utils.mongo_loader import MongoLoader
+from DockerETL_Images.Staging.SQLPersistor.scripts.extractor_factory import (
+    ExtractorFactory,
+)
+from DockerETL_Images.Staging.TransformerWrangler.scripts.utils.mongo_loader import (
+    MongoLoader,
+)
 
 # ------------- < Constants > -------------
 # Read
@@ -64,7 +68,7 @@ COLLECTIONS = [  # ORDER MATTERS WITH RELATIONSHIPS !
 if __name__ == "__main__":
 
     print("\n[pytest] Starting Docker stack...")
-    #subprocess.run(["sh", "setup.sh"], cwd=os.path.dirname(__file__), check=True)
+    # subprocess.run(["sh", "setup.sh"], cwd=os.path.dirname(__file__), check=True)
 
     print(f"Connecting(Mongo) to: <{MONGO_URL}>...")
 
@@ -77,11 +81,9 @@ if __name__ == "__main__":
 
     # Extracting and Persisting
     print(f"[ Connecting to (Mongo): <{MONGO_URL}>... ]")
-    client = MongoClient(
-            host=MONGO_URL
-    )  # or AsyncMongoClient for async operations
+    client = MongoClient(host=MONGO_URL)  # or AsyncMongoClient for async operations
     transient_db = client[MONGO_DB]
-    
+
     print("<-- Connected to MongoDB -->\n")
 
     print(f"[ Connecting to (Postgres): <{DW_POSTGRES_DB_URL}>... ]")
@@ -95,7 +97,7 @@ if __name__ == "__main__":
     print(f"[ Loading to DataWarehouse ]")
     print(f"src   : <{MONGO_URL}>")
     print(f"target: <{DW_POSTGRES_DB_URL}>\n")
-    
+
     with persistor.session_scope() as session:
         for collection_name, orm in COLLECTIONS:
             for batch in ExtractorFactory().build_extractor(
@@ -103,7 +105,7 @@ if __name__ == "__main__":
                     {}, {"_id": int(WITH_ID)}, batch_size=DW_POSTGRES_LOAD_BATCH_SIZE
                 ),
                 batch_size=DW_POSTGRES_LOAD_BATCH_SIZE,
-                wrapper=persistor.orm_wrapper(orm)
+                wrapper=persistor.orm_wrapper(orm),
             ):
                 persistor.persist_all(batch, session=session)
 
