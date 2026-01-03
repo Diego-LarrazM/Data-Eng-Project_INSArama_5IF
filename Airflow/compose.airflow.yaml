@@ -87,7 +87,7 @@ x-airflow-common: &airflow-common
     - ${AIRFLOW_PROJ_DIR:-.}/logs:/opt/airflow/logs
     - ${AIRFLOW_PROJ_DIR:-.}/config:/opt/airflow/config
     - ${AIRFLOW_PROJ_DIR:-.}/plugins:/opt/airflow/plugins
-    - ${AIRFLOW_PROJ_DIR:-.}/data:/opt/airflow/data
+    - INSARAMA_SOURCE_DATA:/opt/airflow/data
     - ${AIRFLOW_PROJ_DIR:-.}/.env:/opt/airflow/.env # Docker Container Env
     - ${AIRFLOW_PROJ_DIR:-.}/setup_mongo_transient_storage.sh:/opt/airflow/setup_mongo_transient_storage.sh # Mongo Transient Server setup shell-script
     - /var/run/docker.sock:/var/run/docker.sock # to enable DockerOperator

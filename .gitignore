@@ -26,6 +26,9 @@
 **/DataWarehouse/data/*
 **/Grafana/grafana_storage/*
 
+**/Data/*
+!**/Data/README.md
+
 **/data/*
 **/output/*
 **/imdb/*

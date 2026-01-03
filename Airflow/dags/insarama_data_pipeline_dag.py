@@ -20,13 +20,13 @@ with DAG(
     start_date=START_DATE,
     schedule=None,
     catchup=False,
-    max_active_tasks=1,
+    max_active_tasks=4,
     default_args={"retries": 0, "retry_delay": timedelta(minutes=1)},
     tags=["data_pipeline", "insarama"],
 ) as dag:
 
     # 1. Groupe Ingestion
-    with TaskGroup(group_id="EnvironnementConfiguration") as ImageBuilding:
+    with TaskGroup(group_id="ImageBuilding") as ImageBuilding:
 
         # build_imdb_image = BashOperator(
         #     task_id="build_imdb_image",
@@ -69,10 +69,12 @@ with DAG(
         )
 
         [
-            build_imdb_image,
-            build_scrapper_image,
-            build_SQLpersistor_image,
-            build_TF_wrangler_image,
+            [
+                build_imdb_image,
+                build_scrapper_image,
+                build_SQLpersistor_image,
+                build_TF_wrangler_image,
+            ],
             run_setup_script,
         ]
 
@@ -112,6 +114,7 @@ with DAG(
             image="ingestion/metacritic_scrapper",
             api_version="auto",
             auto_remove=True,
+            mount_tmp_dir=False,
             command="sh -c '/app/scripts/start.sh'",
             docker_url="unix://var/run/docker.sock",
             force_pull=False,
@@ -141,6 +144,7 @@ with DAG(
             image="staging/tf-wrangler",
             api_version="auto",
             auto_remove=True,
+            mount_tmp_dir=False,
             command="sh -c '/app/scripts/start.sh'",
             docker_url="unix://var/run/docker.sock",
             network_mode=os.getenv("INSARAMA_NET"),
@@ -151,6 +155,12 @@ with DAG(
                 "METACRITIC_DATA_FILE_DIRECTORY": os.getenv(
                     "SCRAPPER_DATA_FILE_DIRECTORY"
                 ),
+                # Mongo
+                "MONGO_USERNAME": os.getenv("MONGO_USERNAME"),
+                "MONGO_PASSWORD": os.getenv("MONGO_PASSWORD"),
+                "MONGO_HOST_NAME": os.getenv("MONGO_HOST_NAME"),
+                "MONGO_PORT": os.getenv("MONGO_PORT"),
+                "MONGO_DB": os.getenv("MONGO_DB"),
                 "MONGO_MEDIA_COLLECTION": os.getenv("MONGO_MEDIA_COLLECTION"),
             },
             mounts=[

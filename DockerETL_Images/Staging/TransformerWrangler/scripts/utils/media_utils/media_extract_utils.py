@@ -1,5 +1,11 @@
 class MediaExtractUtils:
 
+    def extract_int_val(str_val):
+        val = None
+        if str_val is not None:
+            val = int(str_val)
+        return val
+
     def extract_title(data: dict) -> str | None:
         return data.get("title") or data.get("tv_title") or data.get("game_title")
 
