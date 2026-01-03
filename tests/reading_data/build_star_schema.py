@@ -4,6 +4,11 @@ import pandas as pd
 from pathlib import Path
 from itertools import combinations
 import networkx as nx
+
+from get_imdb_data import (
+    extract_roles_for_media,
+)
+
 # from sklearn.cluster import HDBSCAN
 # from sklearn.metrics.pairwise import cosine_distances
 # from sentence_transformers import SentenceTransformer
@@ -12,6 +17,7 @@ import networkx as nx
 ROOT_DIR = Path(__file__).resolve().parent
 DATA_DIR = ROOT_DIR / "data"
 OUTPUT_DIR = ROOT_DIR / "output"
+IMDB_DIR = ROOT_DIR / "imdb"
 # IO
 
 
@@ -25,6 +31,7 @@ def extract_title(data: dict) -> str | None:
 
 
 # DIM MEDIA INFO
+
 
 def extract_year_from_release_date(release_date: str | None) -> int | None:
     if not isinstance(release_date, str):
@@ -69,6 +76,7 @@ def build_mediainfo_rows(data, media_type, year_to_titles):
                 "PEGI_MPA_Rating": md.get("rating"),
                 "genre_id": [],
                 "company_id": [],
+                "role_id": [],
             }
         },
         genre_rows,
@@ -197,7 +205,7 @@ def build_bridge_rows(main_rows, foreign_key_titles, main_title):
 
 
 def build_and_save_dataframe_from_rows(
-    rows, output_filename = None, separator="|", id_attribute_names=["id"], is_dict=False
+    rows, output_filename=None, separator="|", id_attribute_names=["id"], is_dict=False
 ):
     if is_dict:
         # data = {
@@ -212,9 +220,9 @@ def build_and_save_dataframe_from_rows(
         #     {"id": 102, "age": 25, "score": 92},
         # ]
         df = pd.DataFrame.from_records(rows, index=id_attribute_names)
-    if(output_filename) : df.to_csv(OUTPUT_DIR / output_filename, sep=separator, encoding="utf-8")
+    if output_filename:
+        df.to_csv(OUTPUT_DIR / output_filename, sep=separator, encoding="utf-8")
     return df
-
 
 
 # def get_embeddings_of(listOfElements):
@@ -239,8 +247,52 @@ def build_and_save_dataframe_from_rows(
 
 # GROUPING
 
-STOPWORDS = {"the", "of", "a", "an", "and", "in", "on", "at", "ii", "iii", "iv", "v", "vi","vii","viii", "ix", "x", "1", "2", "3", "4", "5","6", "7", "8", "9", "10", "season", "part", "re", "release", "remastered"}
-def cluster_attribute_jaccard(dataframe, attribute, output_label, type_attribute = None, default_value = None, threshold = 0.2, og_indexes = ["id"], blacklist_types = []):
+STOPWORDS = {
+    "the",
+    "of",
+    "a",
+    "an",
+    "and",
+    "in",
+    "on",
+    "at",
+    "ii",
+    "iii",
+    "iv",
+    "v",
+    "vi",
+    "vii",
+    "viii",
+    "ix",
+    "x",
+    "1",
+    "2",
+    "3",
+    "4",
+    "5",
+    "6",
+    "7",
+    "8",
+    "9",
+    "10",
+    "season",
+    "part",
+    "re",
+    "release",
+    "remastered",
+}
+
+
+def cluster_attribute_jaccard(
+    dataframe,
+    attribute,
+    output_label,
+    type_attribute=None,
+    default_value=None,
+    threshold=0.2,
+    og_indexes=["id"],
+    blacklist_types=[],
+):
 
     def extensive_split(string_value):
         splitted = string_value.lower().split()
@@ -249,30 +301,32 @@ def cluster_attribute_jaccard(dataframe, attribute, output_label, type_attribute
         return splitted
 
     def tokenize(string_value):
-        return [token for token in extensive_split(string_value) if token not in STOPWORDS]
+        return [
+            token for token in extensive_split(string_value) if token not in STOPWORDS
+        ]
 
     def jaccard_similarity(set1, set2):
         s1 = set(set1)
         s2 = set(set2)
-        return len(s1 & s2) / len(s1 | s2) 
+        return len(s1 & s2) / len(s1 | s2)
 
     def create_jaccard_similarity_graph(df, token_col, type_col, threshold):
         # Collect all pairs above threshold
         G = nx.Graph()
-        
+
         if blacklist_types:
             df_search = df[~df[type_col].isin(blacklist_types)]
         else:
             df_search = df
         # instead of titles we use sets of tokens (ex: {"super", "mario", "galaxy"}) and compare each other by combinations of 2
-        for (i, t1), (j, t2) in combinations(df_search[token_col].items(), 2): 
+        for (i, t1), (j, t2) in combinations(df_search[token_col].items(), 2):
             # Skip if different media types
             if type_col and df_search[type_col].iloc[i] != df_search[type_col].iloc[j]:
                 continue
-            if jaccard_similarity(t1,t2) >= threshold:
+            if jaccard_similarity(t1, t2) >= threshold:
                 G.add_edge(i, j)
         return G
-    
+
     def find_group_label(df, attribute, cluster):
         """
         df: DataFrame
@@ -282,7 +336,8 @@ def cluster_attribute_jaccard(dataframe, attribute, output_label, type_attribute
         returns: string of sequential common
         """
         # Split title in words
-        split_titles = [extensive_split(df[attribute].iloc[idx]) for idx in cluster] # ["The", Legend", "of", "Zelda"], ["The", "Legend", "of", "Zelda", "II", "The", "Adventure", "of", "Link"]
+        # ["The", Legend", "of", "Zelda"], ["The", "Legend", "of", "Zelda", "II", "The", "Adventure", "of", "Link"]
+        split_titles = [extensive_split(df[attribute].iloc[idx]) for idx in cluster]
         # Get largest continuous common words pattern
         label_elements = []
         for words in zip(*split_titles):
@@ -291,22 +346,25 @@ def cluster_attribute_jaccard(dataframe, attribute, output_label, type_attribute
             else:
                 break
         return " ".join(label_elements)
-    
-    
-    df = dataframe.reset_index(drop=False) # use positional index for efficiency
+
+    # use positional index for efficiency
+    df = dataframe.reset_index(drop=False)
     df[output_label] = default_value
-    df["_tokens"] = df[attribute].apply(tokenize) 
+    df["_tokens"] = df[attribute].apply(tokenize)
     # clusters = sets of nodes connected by edges [{node1, node2, ...}, {...}, ...], here nodes are indexes
-    clusters_graph = create_jaccard_similarity_graph(df, "_tokens", type_attribute,  threshold)
-    clusters = [c for c in nx.connected_components(clusters_graph) if len(c) > 1] 
+    clusters_graph = create_jaccard_similarity_graph(
+        df, "_tokens", type_attribute, threshold
+    )
+    clusters = [c for c in nx.connected_components(clusters_graph) if len(c) > 1]
 
     for cluster in clusters:
         group_label = find_group_label(df, attribute, cluster)
         if group_label:
-            df.loc[list(cluster), output_label] = group_label # map for each element of cluster their group label
+            # map for each element of cluster their group label
+            df.loc[list(cluster), output_label] = group_label
 
     df.drop(columns=["_tokens"], inplace=True)
-    df.set_index(og_indexes, inplace=True) # restore indexes
+    df.set_index(og_indexes, inplace=True)  # restore indexes
     return df
 
 
@@ -320,6 +378,7 @@ def main():
     time_connection = {}
     reviewer_connection = {}
     section_connection = {}
+    role_connection = {}
 
     # All by default distinct rows
     media_rows = {}
@@ -340,7 +399,9 @@ def main():
         for jf in cat_dir.glob("*.json"):
             data = load_json(jf)
             to_add_media_info_row, to_add_genres, to_add_companies = (
-                build_mediainfo_rows(data, media_type, merging_utilities["year_to_titles"])
+                build_mediainfo_rows(
+                    data, media_type, merging_utilities["year_to_titles"]
+                )
             )
             media_info_id = list(to_add_media_info_row.keys())[0]
             to_add_review_rows, to_add_timestamps, to_add_reviewers, to_add_sections = (
@@ -368,6 +429,13 @@ def main():
                 to_add_sections, section_connection, ["section_name", "section_type"]
             )
 
+    # IMDB Joining for roles extraction
+    role_connection = extract_roles_for_media(
+        media_rows=media_rows,
+        imdb_dir=IMDB_DIR,
+        title_basics_path=IMDB_DIR / "title.basics.tsv.gz",
+    )
+
     # Remapping
     genre_rows = remap_foreign_keys_and_build_distinct_rows(
         media_rows, genre_connection, "genre_id"
@@ -384,18 +452,24 @@ def main():
     section_rows = remap_foreign_keys_and_build_distinct_rows(
         review_rows, section_connection, "section_id"
     )
+    role_rows = remap_foreign_keys_and_build_distinct_rows(
+        media_rows, role_connection, "role_id"
+    )
 
     # Build bridge tables for media_info
     bridge_dfs_media_info = build_bridge_rows(
-        media_rows, ["genre_id", "company_id"], "media_id"
+        media_rows, ["genre_id", "company_id", "role_id"], "media_id"
     )
     bridge_media_genre_rows = bridge_dfs_media_info["genre_id"]
     bridge_media_company_rows = bridge_dfs_media_info["company_id"]
+    bridge_media_role_rows = bridge_dfs_media_info["role_id"]
 
     # DataFrames and CSVs
     media_df = build_and_save_dataframe_from_rows(media_rows, is_dict=True)
-    media_df = cluster_attribute_jaccard(media_df, "primary_title", "franchise", type_attribute="media_type")
-    media_df.to_csv(OUTPUT_DIR / "media_info.csv", sep='|', encoding="utf-8")
+    media_df = cluster_attribute_jaccard(
+        media_df, "primary_title", "franchise", type_attribute="media_type"
+    )
+    media_df.to_csv(OUTPUT_DIR / "media_info.csv", sep="|", encoding="utf-8")
 
     build_and_save_dataframe_from_rows(
         bridge_media_genre_rows,
@@ -409,9 +483,17 @@ def main():
         id_attribute_names=["media_id", "company_id"],
     )
 
+    build_and_save_dataframe_from_rows(
+        bridge_media_role_rows,
+        "bridge_media_role.csv",
+        id_attribute_names=["media_id", "role_id"],
+    )
+
     build_and_save_dataframe_from_rows(genre_rows, "genres.csv")
 
     build_and_save_dataframe_from_rows(company_rows, "companies.csv")
+
+    build_and_save_dataframe_from_rows(role_rows, "roles.csv")
 
     build_and_save_dataframe_from_rows(review_rows, "reviews.csv", is_dict=True)
 
@@ -420,8 +502,14 @@ def main():
     build_and_save_dataframe_from_rows(reviewer_rows, "reviewers.csv")
 
     section_df = build_and_save_dataframe_from_rows(section_rows)
-    section_df = cluster_attribute_jaccard(section_df, "section_name", "section_group", type_attribute="section_type", blacklist_types=["Season", "Display"])
-    section_df.to_csv(OUTPUT_DIR / "sections.csv" , sep='|', encoding="utf-8")
+    section_df = cluster_attribute_jaccard(
+        section_df,
+        "section_name",
+        "section_group",
+        type_attribute="section_type",
+        blacklist_types=["Season", "Display"],
+    )
+    section_df.to_csv(OUTPUT_DIR / "sections.csv", sep="|", encoding="utf-8")
 
 
 if __name__ == "__main__":
