@@ -125,7 +125,7 @@ def setup_metacritic_data():
     print("-> Mapped Companies")
 
     time_rows = MediaMappingUtils.remap_foreign_keys_and_build_distinct_rows(
-        review_rows, time_connection, "time_id"
+        review_rows, time_connection, "time_id", null_check_collums=["year"]
     )
     del time_connection
     print("-> Mapped Timestamps")
