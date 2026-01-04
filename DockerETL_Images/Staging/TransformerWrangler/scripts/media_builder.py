@@ -299,20 +299,20 @@ class MediaBuilder:
             for row in chunk.itertuples(index=False):
                 media_id = imdb_matches[row.tconst]
 
-                play_method = None
+                role = None
                 if row.characters != "\\N":
-                    play_method = MediaCleaningUtils.clean_play_method(row.characters)
+                    role = MediaCleaningUtils.clean_role(row.characters)
                 elif row.job != "\\N":
-                    play_method = row.job
+                    role = row.job
 
-                role = MediaCleaningUtils.normalize_role(row.category)
+                play_method = MediaCleaningUtils.normalize_play_method(row.category)
 
                 MediaMappingUtils.map_distinct_value(
                     {
                         "ref_id": media_id,
                         "nconst": row.nconst,
-                        "role": role,
                         "play_method": play_method,
+                        "role": role,
                     },
                     role_connection,
                     pk_attributes=["nconst", "role", "play_method"],

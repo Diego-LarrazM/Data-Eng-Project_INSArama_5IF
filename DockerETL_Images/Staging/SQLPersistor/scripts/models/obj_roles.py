@@ -10,7 +10,7 @@ class RoleORM(ModelsBase):
 
     # Fields
     person_name = Column(String, nullable=False)
-    play_method = Column(String, nullable=False)
+    play_method = Column(String, nullable=True)
     role = Column(String, nullable=False)
 
     def __repr__(self):

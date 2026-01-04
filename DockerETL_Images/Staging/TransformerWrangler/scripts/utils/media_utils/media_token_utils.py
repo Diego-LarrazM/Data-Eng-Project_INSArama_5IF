@@ -76,13 +76,15 @@ class MediaTokenUtils:
         # Remove startYear (1900–2099)
         title = re.sub(r"\b(19|20)\d{2}\b", "", title)
         # Remove non characters or nums
-        re.sub(r"[^\w\s]", " ", title)
+        re.sub(r"[^\w]", " ", title)
         # Collapse multiple spaces
         # title = re.sub(r"\s+", " ", title)
         # Strip leading/trailing spaces
         # title = title.strip()
         # Erase stopwords
-        tokens = set(re.findall(r"\w+", title))  # - IMDB_TITLE_STOPWORDS
+        tokens = (
+            set(re.findall(r"\w+", title)) if title else None
+        )  # - IMDB_TITLE_STOPWORDS
         return tokens
 
     def jaccard_title_similarity(a: str, b: str) -> float:
@@ -94,7 +96,7 @@ class MediaTokenUtils:
         if not set_a or not set_b:
             return 0.0
 
-        return len(set_a & set_b) / len(set_a | set_b)
+        return set_a == set_b  # len(set_a & set_b) / len(set_a | set_b)
 
     def cluster_attribute_jaccard(
         dataframe,

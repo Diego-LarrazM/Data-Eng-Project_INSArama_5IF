@@ -153,10 +153,13 @@ def setup_metacritic_data():
     )
     del company_rows
 
-    MediaBuilder.build_and_save_dataframe_from_rows(
-        review_rows, OUTPUT_DIR / "FACT_REVIEWS.csv", is_dict=True
+    reviews_df = MediaBuilder.build_and_save_dataframe_from_rows(
+        review_rows, is_dict=True
     )
     del review_rows
+    reviews_df.dropna(subset=["rating"], inplace=True)
+    reviews_df.to_csv(OUTPUT_DIR / "FACT_REVIEWS.csv")
+    del reviews_df
 
     MediaBuilder.build_and_save_dataframe_from_rows(
         time_rows, OUTPUT_DIR / "DIM_TIME.csv"
@@ -170,6 +173,7 @@ def setup_metacritic_data():
 
     print("[ Extracting Franchise for Sections ... ]")
     section_df = MediaBuilder.build_and_save_dataframe_from_rows(section_rows)
+    del section_rows
     section_df = MediaTokenUtils.cluster_attribute_jaccard(
         section_df,
         "section_name",
@@ -178,7 +182,6 @@ def setup_metacritic_data():
         blacklist_types=["Season", "Display"],
     )
     section_df.to_csv(OUTPUT_DIR / "DIM_SECTION.csv", sep="|", encoding="utf-8")
-    del section_rows
 
     print("< Finished with Metacritic >")
 
@@ -204,7 +207,8 @@ def setup_and_join_imdb_data_for_roles(media_rows, title_year_set):
     del role_connection
 
     role_df = MediaBuilder.build_and_save_dataframe_from_rows(role_rows)
-    role_df.drop(columns=["nconst"]).to_csv(OUTPUT_DIR / "ROLES.csv")
+    role_df.drop(columns=["nconst"], inplace=True)
+    role_df.to_csv(OUTPUT_DIR / "ROLES.csv")
     del role_rows
 
 
@@ -240,12 +244,12 @@ def setup_bridges(media_rows):
 if __name__ == "__main__":
 
     media_rows, title_year_set = setup_metacritic_data()
-    """
+
     setup_and_join_imdb_data_for_roles(media_rows, title_year_set)
     del title_year_set
 
     setup_bridges(media_rows)
-    """
+
     # DataFrames and CSVs
     print(f"[ Extracting Franchises... ]")
     media_df = MediaBuilder.build_and_save_dataframe_from_rows(media_rows, is_dict=True)

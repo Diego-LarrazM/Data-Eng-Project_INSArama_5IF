@@ -26,25 +26,27 @@ class MediaCleaningUtils:
 
         return df
 
-    def clean_play_method(play_method: str | None) -> str | None:
-        if not isinstance(play_method, str) or play_method == "\\N":
+    def clean_role(role: str | None) -> str | None:
+        if not isinstance(role, str) or role == "\\N":
             return None
-
-        cleaned = play_method.strip()
+        print(role)
+        cleaned = role.strip()
         cleaned = cleaned.strip("[]")
 
         cleaned = cleaned.replace('"', "").replace("'", "")
+        # cleaned = re.sub(r"[^\w^\s]", "", cleaned)
 
         cleaned = re.sub(r"\s*,\s*", ", ", cleaned)
-
+        # cleaned = re.sub(r"\s+", " ", cleaned)
+        print("after: ", cleaned.strip())
         return cleaned.strip() if cleaned else None
 
-    def normalize_role(role: str | None) -> str | None:
-        if not isinstance(role, str) and role is None:
+    def normalize_play_method(play_method: str | None) -> str | None:
+        if not isinstance(play_method, str) and play_method is None:
             return None
 
-        role = role.lower().strip()
+        play_method = play_method.lower().strip()
 
-        ROLE_MAP = {"actress": "actor"}
+        PLAY_METHOD_MAP = {"actress": "actor"}
 
-        return ROLE_MAP.get(role, role)
+        return PLAY_METHOD_MAP.get(play_method, play_method)
