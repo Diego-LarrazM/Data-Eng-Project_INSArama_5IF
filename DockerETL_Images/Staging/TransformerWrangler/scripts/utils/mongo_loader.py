@@ -66,7 +66,9 @@ class MongoLoader:
         self,
         file_path: str,
         collection_name: str,
+        delimiter=";",
         session: ClientSession = None,
+        filter=None,
         filter_columns: list[str] = None,
         filter_values_list: list[dict] = None,
         batch_size: int = 1000,
@@ -74,14 +76,16 @@ class MongoLoader:
 
         if not os.path.exists(file_path):
             raise Exception(f"File {file_path} does not exist.")
-
         collection = self.db[collection_name]
 
-        filter_func = MongoLoader._make_filter_func(filter_columns, filter_values_list)
+        filter_func = None
+        if filter:
+            filter_func = MongoLoader._make_filter_func(
+                filter_columns, filter_values_list
+            )
 
         with open(file_path, "r", encoding="utf-8") as csv_file:
-            row_gen = csv.DictReader(csv_file, delimiter=";")
-
+            row_gen = csv.DictReader(csv_file, delimiter=delimiter)
             batch_gen = BatchGenerator(
                 generator=row_gen, batch_size=batch_size, filter_func=filter_func
             )

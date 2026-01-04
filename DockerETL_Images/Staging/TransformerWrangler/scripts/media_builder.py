@@ -142,7 +142,7 @@ class MediaBuilder:
         media_rows: dict,
         title_basics_path: Path,
         title_year_set: set,
-        chunksize: int = 5_000_000,
+        chunksize: int = 2_000_000,
     ) -> dict:
 
         print(f"[ IMDb: Starting Join: finding common titles to join roles ... ]")
@@ -221,7 +221,7 @@ class MediaBuilder:
     def build_roles_for_media(
         imdb_matches: dict,
         imdb_dir: Path,
-        chunksize: int = 5_000_000,
+        chunksize: int = 2_000_000,
     ) -> pd.DataFrame:
         print("\n[ IMDb: Extracting roles for media ]")
 
@@ -251,9 +251,9 @@ class MediaBuilder:
             chunk["characters"] = MediaCleaningUtils.clean_characters(chunk)
             chunk["job"] = MediaCleaningUtils.clean_job(chunk)
             chunk["role"] = chunk["characters"].combine_first(chunk["job"])
+            chunk = chunk.dropna(subset=["role"])
             # Obtain playmethod
             chunk["play_method"] = MediaCleaningUtils.clean_category(chunk)
-            chunk = chunk.dropna(subset=["play_method"])
             chunk = chunk.drop_duplicates(subset=["nconst", "play_method", "role"])
             # Map to metacritic media
             chunk["ref_id"] = chunk["tconst"].replace(imdb_matches, regex=False)

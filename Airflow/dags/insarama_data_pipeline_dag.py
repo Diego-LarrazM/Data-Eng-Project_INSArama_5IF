@@ -26,7 +26,7 @@ with DAG(
 ) as dag:
 
     # 1. Groupe Ingestion
-    with TaskGroup(group_id="ImageBuilding") as ImageBuilding:
+    with TaskGroup(group_id="DockerSetup") as DockerSetup:
 
         # build_imdb_image = BashOperator(
         #     task_id="build_imdb_image",
@@ -54,8 +54,8 @@ with DAG(
             bash_command="docker build -t staging/tf-wrangler /opt/airflow/dockerETL_images/Staging/TransformerWrangler/",
         )
 
-        run_setup_script = BashOperator(
-            task_id="run_setup_script",
+        setup_mongo_server = BashOperator(
+            task_id="setup_mongo_server",
             bash_command="bash /opt/airflow/setup_mongo_transient_storage.sh ",
             env={
                 "MONGO_USERNAME": os.getenv("MONGO_USERNAME"),
@@ -75,7 +75,7 @@ with DAG(
                 build_SQLpersistor_image,
                 build_TF_wrangler_image,
             ],
-            run_setup_script,
+            setup_mongo_server,
         ]
 
     with TaskGroup(group_id="Ingestion") as Ingestion_Group:
@@ -194,7 +194,6 @@ with DAG(
                 "MONGO_MEDIA_COLLECTION": os.getenv("MONGO_MEDIA_COLLECTION"),
                 # Postgres
                 "DW_POSTGRES_HOST": os.getenv("DW_POSTGRES_HOST"),
-                "DW_POSTGRES_PORT": os.getenv("DW_POSTGRES_PORT"),
                 "DW_POSTGRES_DB": os.getenv("DW_POSTGRES_DB"),
                 "DW_POSTGRES_USER": os.getenv("DW_POSTGRES_USER"),
                 "DW_POSTGRES_PASSWORD": os.getenv("DW_POSTGRES_PASSWORD"),
@@ -202,6 +201,20 @@ with DAG(
             },
         )
 
-        run_tf_wrangler >> postgres_loader
+        stop_mongo_server = BashOperator(
+            task_id="stop_mongo_server",
+            bash_command="bash /opt/airflow/stop_mongo_transient_storage.sh ",
+            env={
+                "MONGO_USERNAME": os.getenv("MONGO_USERNAME"),
+                "MONGO_PASSWORD": os.getenv("MONGO_PASSWORD"),
+                "MONGO_HOST_NAME": os.getenv("MONGO_HOST_NAME"),
+                "MONGO_PORT": os.getenv("MONGO_PORT"),
+                "MONGO_DB": os.getenv("MONGO_DB"),
+                "MONGO_HEALTHCHECK_RETRIES": os.getenv("MONGO_HEALTHCHECK_RETRIES"),
+                "INSARAMA_NET": os.getenv("INSARAMA_NET"),
+            },
+        )
 
-    ImageBuilding >> Ingestion_Group >> Staging_Group
+        run_tf_wrangler >> postgres_loader >> stop_mongo_server
+
+    DockerSetup >> Ingestion_Group >> Staging_Group

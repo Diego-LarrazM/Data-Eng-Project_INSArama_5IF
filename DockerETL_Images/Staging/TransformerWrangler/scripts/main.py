@@ -8,7 +8,7 @@ from utils.media_utils import *
 from media_builder import MediaBuilder
 
 HOST = os.environ.get("MONGO_HOST_NAME")
-PORT = int(os.environ.get("MONGO_PORT") or 0)
+PORT = int(os.environ.get("MONGO_PORT", -1))
 USERNAME = os.environ.get("MONGO_USERNAME")
 PASSWORD = os.environ.get("MONGO_PASSWORD")
 MONGO_DB = os.environ.get("MONGO_DB")
@@ -19,10 +19,10 @@ if USERNAME and PASSWORD:
 mongo_url = f"mongodb://{credentials}{HOST}:{PORT}/"
 
 METACRITIC_SOURCE_DIR = Path(
-    os.environ.get("METACRITIC_DATA_FILE_DIRECTORY") or "./data/metacritic"
+    os.environ.get("METACRITIC_DATA_FILE_DIRECTORY", "./data/metacritic")
 )
-IMDB_SOURCE_DIR = Path(os.environ.get("IMDB_DATA_FILE_DIRECTORY") or "./data/imdb")
-OUTPUT_DIR = Path(os.environ.get("OUT_DATA_FILE_DIRECTORY") or "./data/output")
+IMDB_SOURCE_DIR = Path(os.environ.get("IMDB_DATA_FILE_DIRECTORY", "./data/imdb"))
+OUTPUT_DIR = Path(os.environ.get("OUT_DATA_FILE_DIRECTORY", "./data/output"))
 
 COLLECTIONS = [  # ORDER MATTERS WITH RELATIONSHIPS !
     # Bridged Entities
@@ -207,7 +207,7 @@ def setup_and_join_imdb_data_for_roles(media_rows, title_year_set):
     del role_connection
 
     role_df = MediaBuilder.build_and_save_dataframe_from_rows(role_rows)
-    role_df.drop(columns=["nconst"])
+    role_df = role_df.drop(columns=["nconst"])
     role_df.to_csv(OUTPUT_DIR / "ROLES.csv", sep="|", encoding="utf-8")
     del role_rows
 
@@ -264,7 +264,12 @@ if __name__ == "__main__":
 
     for collection in COLLECTIONS:
         print(f"Loading collection: {collection}...")
-        if not loader.load_from_csv(OUTPUT_DIR / f"{collection}.csv", collection):
+        if loader.load_from_csv(
+            OUTPUT_DIR / f"{collection}.csv",
+            collection,
+            delimiter="|",
+            batch_size=10000,
+        ):
             raise Exception(f"Failed to load collection: {collection}!")
 
     print("All collections loaded successfully!")
