@@ -158,7 +158,7 @@ def setup_metacritic_data():
     )
     del review_rows
     reviews_df.dropna(subset=["rating"], inplace=True)
-    reviews_df.to_csv(OUTPUT_DIR / "FACT_REVIEWS.csv")
+    reviews_df.to_csv(OUTPUT_DIR / "FACT_REVIEWS.csv", sep="|", encoding="utf-8")
     del reviews_df
 
     MediaBuilder.build_and_save_dataframe_from_rows(
@@ -208,7 +208,7 @@ def setup_and_join_imdb_data_for_roles(media_rows, title_year_set):
 
     role_df = MediaBuilder.build_and_save_dataframe_from_rows(role_rows)
     role_df.drop(columns=["nconst"], inplace=True)
-    role_df.to_csv(OUTPUT_DIR / "ROLES.csv")
+    role_df.to_csv(OUTPUT_DIR / "ROLES.csv", sep="|", encoding="utf-8")
     del role_rows
 
 
