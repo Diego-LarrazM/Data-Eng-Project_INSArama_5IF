@@ -136,10 +136,7 @@ class MediaTokenUtils:
             # instead of titles we use sets of tokens (ex: {"super", "mario", "galaxy"}) and compare each other by combinations of 2
             for (i, t1), (j, t2) in combinations(df_search[token_col].items(), 2):
                 # Skip if different media types
-                if (
-                    type_col
-                    and df_search[type_col].iloc[i] != df_search[type_col].iloc[j]
-                ):
+                if type_col and df[type_col].iloc[i] != df[type_col].iloc[j]:
                     continue
                 if jaccard_similarity(t1, t2) >= threshold:
                     G.add_edge(i, j)

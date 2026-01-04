@@ -62,12 +62,15 @@ def setup_metacritic_data():
     for cat_dir in METACRITIC_SOURCE_DIR.iterdir():
         if not cat_dir.is_dir():
             continue
+
+        print(f"[ Loading media data from: <{cat_dir.name}>... ]")
+
         media_type = "Movie"
         section_type = "Display"
-        if cat_dir.name == "games":
+        if cat_dir.name == "GAMES":
             section_type = "Platform"
             media_type = "Video Game"
-        elif cat_dir.name == "tvshows":
+        elif cat_dir.name == "TV_SHOWS":
             section_type = "Season"
             media_type = "TV Series"
 
@@ -106,8 +109,6 @@ def setup_metacritic_data():
             MediaMappingUtils.map_distinct_values(
                 to_add_sections, section_connection, ["section_name", "section_type"]
             )
-
-            print(f"[ Loading media data from: <{jf}>... ]")
 
     # Remapping
     print(f"[ Remapping Metacritic Data ]")
@@ -169,7 +170,6 @@ def setup_metacritic_data():
 
     print("[ Extracting Franchise for Sections ... ]")
     section_df = MediaBuilder.build_and_save_dataframe_from_rows(section_rows)
-    del section_rows
     section_df = MediaTokenUtils.cluster_attribute_jaccard(
         section_df,
         "section_name",
@@ -178,6 +178,7 @@ def setup_metacritic_data():
         blacklist_types=["Season", "Display"],
     )
     section_df.to_csv(OUTPUT_DIR / "DIM_SECTION.csv", sep="|", encoding="utf-8")
+    del section_rows
 
     print("< Finished with Metacritic >")
 
@@ -202,7 +203,8 @@ def setup_and_join_imdb_data_for_roles(media_rows, title_year_set):
     )
     del role_connection
 
-    MediaBuilder.build_and_save_dataframe_from_rows(role_rows, OUTPUT_DIR / "ROLES.csv")
+    role_df = MediaBuilder.build_and_save_dataframe_from_rows(role_rows)
+    role_df.drop(columns=["nconst"]).to_csv(OUTPUT_DIR / "ROLES.csv")
     del role_rows
 
 
@@ -238,12 +240,12 @@ def setup_bridges(media_rows):
 if __name__ == "__main__":
 
     media_rows, title_year_set = setup_metacritic_data()
-
+    """
     setup_and_join_imdb_data_for_roles(media_rows, title_year_set)
     del title_year_set
 
     setup_bridges(media_rows)
-
+    """
     # DataFrames and CSVs
     print(f"[ Extracting Franchises... ]")
     media_df = MediaBuilder.build_and_save_dataframe_from_rows(media_rows, is_dict=True)

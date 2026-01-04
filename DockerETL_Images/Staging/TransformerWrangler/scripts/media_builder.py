@@ -205,7 +205,7 @@ class MediaBuilder:
         media_rows: dict,
         title_basics_path: Path,
         title_year_set: set,
-        chunksize: int = 500_000,
+        chunksize: int = 5_000_000,
     ) -> dict:
 
         print(f"[ Starting Join: finding common titles ... ]")
@@ -321,7 +321,7 @@ class MediaBuilder:
                 )
                 required_nconsts.add(row.nconst)
 
-            if chunk_idx % 2 == 0:
+            if chunk_idx % 5 == 0:
                 print(f"Scanned {chunk_idx * chunksize:,} IMDb CHARACTERS rows...")
 
         nconst_to_name = {}
@@ -346,8 +346,7 @@ class MediaBuilder:
             for row in chunk.itertuples(index=False):
                 nconst_to_name[row.nconst] = row.primaryName
 
-            if chunk_idx % 10 == 0:
-                print(f"Scanned {chunk_idx * chunksize:,} IMDb NAMES rows...")
+            print(f"Scanned {chunk_idx * chunksize:,} IMDb NAMES rows...")
 
             for role_attributes in role_connection.values():
                 primary_name = nconst_to_name.get(role_attributes["nconst"])
