@@ -6,11 +6,11 @@ class CompanyORM(ModelsBase):
     __tablename__ = "COMPANIES"
 
     # Primary Keys
-    Company_ID = Column(Integer, primary_key=True, nullable=False)
+    id = Column(Integer, primary_key=True, nullable=False)
 
     # Fields
-    CompanyName = Column(String, nullable=False)
-    # Networth = Column(Float, nullable=True)
+    company_role = Column(String, nullable=False)
+    company_name = Column(String, nullable=False)
 
     def __repr__(self):
-        return f"<CompanyORM(Company_ID={self.Company_ID}, CompanyName='{self.CompanyName}')>"
+        return f"<CompanyORM(id={self.id}, company_role='{self.company_role}' company_name='{self.company_name}')>"

@@ -7,22 +7,22 @@ class MediaGenreBridgeORM(ModelsBase):
     __tablename__ = "BRIDGE_MEDIA_GENRE"
 
     # Primary Keys
-    MediaInfo_ID = Column(
+    media_id = Column(
         Integer,
-        ForeignKey("DIM_MEDIA_INFO.MediaInfo_ID"),
+        ForeignKey("DIM_MEDIA_INFO.id"),
         primary_key=True,
         nullable=False,
     )
-    Genre_ID = Column(
-        Integer, ForeignKey("GENRES.Genre_ID"), primary_key=True, nullable=False
+    genre_id = Column(
+        Integer, ForeignKey("GENRES.id"), primary_key=True, nullable=False
     )
 
     # Fields
-    Weight = Column(Float, nullable=False)
+    weight = Column(Float, nullable=False)
 
     # ORM relationships
     media = relationship("MediaInfoDimORM")
     genre = relationship("GenreORM")
 
     def __repr__(self):
-        return f"<MediaGenreBridgeORM(MediaInfo_ID={self.MediaInfo_ID}, Genre_ID={self.Genre_ID}, Weight={self.Weight})>"
+        return f"<MediaGenreBridgeORM(media_id={self.media_id}, genre_id={self.genre_id}, weight={self.weight})>"

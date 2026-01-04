@@ -43,15 +43,13 @@ class MediaBuilder:
             {
                 media_info_id: {
                     "primary_title": MediaExtractUtils.extract_title(data),
-                    "title_language": md.get("original_language"),
-                    "original_title": md.get("original_title"),
                     "media_type": media_type,
                     "duration": MediaExtractUtils.extract_runtime_minutes(
                         md.get("duration")
                     ),
                     "description": md.get("summary"),
                     "release_date": release_date_str,
-                    "PEGI_MPA_Rating": md.get("rating"),
+                    "pegi_mpa_rating": md.get("rating"),
                     "genre_id": [],
                     "company_id": [],
                     "role_id": [],
@@ -353,7 +351,7 @@ class MediaBuilder:
                 if not primary_name:
                     continue
 
-                role_attributes["primaryName"] = primary_name
+                role_attributes["person_name"] = primary_name
 
                 if role_attributes.get("role") == "self":
                     role_attributes["play_method"] = primary_name

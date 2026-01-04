@@ -3,9 +3,8 @@ from .fact_reviews import ReviewsFactORM
 from .bridge_media_company import MediaCompanyBridgeORM
 from .bridge_media_genre import MediaGenreBridgeORM
 from .bridge_media_role import MediaRoleBridgeORM
-from .dim_franchise import FranchiseDimORM
 from .dim_media_info import MediaInfoDimORM
-from .dim_section import PlatformDimORM
+from .dim_section import SectionDimORM
 from .dim_reviewer import ReviewerDimORM
 from .dim_time import TimeDimORM
 from .obj_companies import CompanyORM
@@ -18,9 +17,8 @@ __all__ = [
     "MediaCompanyBridgeORM",
     "MediaGenreBridgeORM",
     "MediaRoleBridgeORM",
-    "FranchiseDimORM",
     "MediaInfoDimORM",
-    "PlatformDimORM",
+    "SectionDimORM",
     "ReviewerDimORM",
     "TimeDimORM",
     "CompanyORM",

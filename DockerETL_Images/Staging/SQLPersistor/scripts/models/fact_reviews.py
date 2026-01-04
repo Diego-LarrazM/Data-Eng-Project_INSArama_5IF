@@ -7,45 +7,40 @@ class ReviewsFactORM(ModelsBase):
     __tablename__ = "FACT_REVIEWS"
 
     # Primary Keys
-    Reviewer_ID = Column(
+    reviewer_id = Column(
         Integer,
-        ForeignKey("DIM_REVIEWER.Reviewer_ID"),
+        ForeignKey("DIM_REVIEWER.id"),
         primary_key=True,
         nullable=False,
     )
-    Time_ID = Column(
-        Integer, ForeignKey("DIM_TIME.Time_ID"), primary_key=True, nullable=False
+    time_id = Column(
+        Integer, ForeignKey("DIM_TIME.id"), primary_key=True, nullable=False
     )
-    Platform_ID = Column(
+    section_id = Column(
         Integer,
-        ForeignKey("DIM_PLATFORM.Platform_ID"),
+        ForeignKey("DIM_SECTION.id"),
         primary_key=True,
         nullable=False,
     )
-    MediaInfo_ID = Column(
+    media_info_id = Column(
         Integer,
-        ForeignKey("DIM_MEDIA_INFO.MediaInfo_ID"),
+        ForeignKey("DIM_MEDIA_INFO.id"),
         primary_key=True,
         nullable=False,
     )
-    # Franchise_ID = Column(Integer, ForeignKey("dim_franchise.Franchise_ID"), primary_key=True, nullable=False)
-    FranchiseTitle = Column(
-        String, primary_key=True, nullable=False
-    )  # Degenerate dimension to reduce overhead
 
     # Facts
-    RatingScore = Column(Integer, nullable=False)
+    rating = Column(Integer, nullable=False)
 
     # ORM relationships
     reviewer = relationship("ReviewerDimORM")
     time = relationship("TimeDimORM")
-    platform = relationship("PlatformDimORM")
+    section = relationship("SectionDimORM")
     mediainfo = relationship("MediaInfoDimORM")
-    # franchise = relationship("FranchiseDimORM")
 
     def __repr__(self):
         return (
-            f"<ReviewsFactORM(Reviewer_ID={self.Reviewer_ID}, Time_ID={self.Time_ID}, "
-            f"Platform_ID={self.Platform_ID}, MediaInfo_ID={self.MediaInfo_ID}, "
-            f"FranchiseTitle={self.FranchiseTitle}, RatingScore={self.RatingScore})>"
+            f"<ReviewsFactORM(reviewer_id={self.reviewer_id}, time_id={self.time_id}, "
+            f"section_id={self.section_id}, media_info_id={self.media_info_id}, "
+            f"rating={self.rating})>"
         )

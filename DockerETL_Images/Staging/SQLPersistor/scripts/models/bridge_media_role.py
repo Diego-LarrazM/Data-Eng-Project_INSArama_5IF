@@ -7,22 +7,20 @@ class MediaRoleBridgeORM(ModelsBase):
     __tablename__ = "BRIDGE_MEDIA_ROLE"
 
     # Primary Keys
-    MediaInfo_ID = Column(
+    media_id = Column(
         Integer,
-        ForeignKey("DIM_MEDIA_INFO.MediaInfo_ID"),
+        ForeignKey("DIM_MEDIA_INFO.id"),
         primary_key=True,
         nullable=False,
     )
-    Role_ID = Column(
-        Integer, ForeignKey("ROLES.Role_ID"), primary_key=True, nullable=False
-    )
+    role_id = Column(Integer, ForeignKey("ROLES.id"), primary_key=True, nullable=False)
 
     # Fields
-    Weight = Column(Float, nullable=False)
+    weight = Column(Float, nullable=False)
 
     # ORM relationships
     media = relationship("MediaInfoDimORM")
     role = relationship("RoleORM")
 
     def __repr__(self):
-        return f"<MediaRoleBridgeORM(MediaInfo_ID={self.MediaInfo_ID}, Role_ID={self.Role_ID}, Weight={self.Weight})>"
+        return f"<MediaRoleBridgeORM(media_id={self.media_id}, role_id={self.role_id}, weight={self.weight})>"

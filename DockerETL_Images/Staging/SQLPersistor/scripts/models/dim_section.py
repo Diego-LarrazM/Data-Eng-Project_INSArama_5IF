@@ -2,18 +2,19 @@ from . import ModelsBase
 from sqlalchemy import Column, Integer, String
 
 
-class PlatformDimORM(ModelsBase):
-    __tablename__ = "DIM_PLATFORM"
+class SectionDimORM(ModelsBase):
+    __tablename__ = "DIM_SECTION"
 
     # Primary Keys
-    Platform_ID = Column(Integer, primary_key=True, nullable=False)
+    id = Column(Integer, primary_key=True, nullable=False)
 
     # Fields
-    PlatformName = Column(String, nullable=False)
-    PlatformType = Column(String, nullable=False)
+    section_type = Column(String, nullable=False)
+    section_group = Column(String, nullable=True)
+    section_name = Column(String, nullable=False)
 
     def __repr__(self):
         return (
-            f"<PlatformDimORM(Platform_ID={self.Platform_ID}, PlatformName='{self.PlatformName}', "
-            f"PlatformType='{self.PlatformType}')>"
+            f"<PlatformDimORM(id={self.id}, section_type='{self.section_type}', "
+            f"section_group='{self.section_group}', section_name='{self.section_name}')>"
         )

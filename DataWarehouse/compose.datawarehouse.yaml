@@ -13,3 +13,13 @@ services:
     restart: always
     networks:
       - INSARAMA_NET
+  insm_pgadmin_data_warehouse:
+    container_name: ${DW_PGADMIN_HOST}
+    image: elestio/pgadmin
+    environment:
+      PGADMIN_DEFAULT_EMAIL: ${DW_PGADMIN_DEFAULT_EMAIL}
+      PGADMIN_DEFAULT_PASSWORD: ${DW_PGADMIN_DEFAULT_PASSWORD}
+    ports:
+      - "${DW_PGADMIN_PORT}:80" # type localhost:5050 to your browser to access the UI
+    networks:
+      - INSARAMA_NET
