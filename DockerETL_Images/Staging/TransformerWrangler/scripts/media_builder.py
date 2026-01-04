@@ -145,7 +145,7 @@ class MediaBuilder:
         chunksize: int = 5_000_000,
     ) -> dict:
 
-        print(f"[ Starting Join: finding common titles ... ]")
+        print(f"[ IMDb: Starting Join: finding common titles to join roles ... ]")
         result = {}
         best_similarity_found = {}
         targets_df = MediaBuilder.build_media_targets(media_rows)
@@ -171,19 +171,22 @@ class MediaBuilder:
             ),
             start=1,
         ):
+
+            # Fltering Titles
             chunk_df = MediaCleaningUtils.IMDB_acceptable_filter(
                 chunk_df, year_to_title=title_year_set
             )
             print(f"CLEANED : {chunksize - chunk_df.shape[0]}")
 
+            # --> Filter by year
             candidates = MediaCleaningUtils.filter_year_equivalent_candidates(
                 chunk_df, targets_df
             )
-
             if candidates.empty:
                 print(f"None found in same year")
                 continue
 
+            # --> Filter by runtime
             candidates = MediaCleaningUtils.filter_runtime_equivalent_targets(
                 candidates
             )
@@ -191,6 +194,7 @@ class MediaBuilder:
                 print(f"None found for same runtime")
                 continue
 
+            # Matching Titles
             candidates["normTIMDB"] = MediaTokenUtils.normalize_title(
                 candidates, "primaryTitle"
             )
@@ -203,7 +207,6 @@ class MediaBuilder:
                 ),
                 axis=1,
             )
-
             candidates = candidates[candidates["similarity"] >= 0.6]
 
             matches = MediaMappingUtils.map_best_candidate_to_target_title(
@@ -218,9 +221,9 @@ class MediaBuilder:
     def build_roles_for_media(
         imdb_matches: dict,
         imdb_dir: Path,
-        chunksize: int = 500_000,
+        chunksize: int = 5_000_000,
     ) -> pd.DataFrame:
-        print("\n[IMDb] Extracting roles for media")
+        print("\n[ IMDb: Extracting roles for media ]")
 
         role_connection = {}
         required_nconsts = set()
@@ -240,39 +243,42 @@ class MediaBuilder:
             ),
             start=1,
         ):
-            chunk = chunk[chunk["tconst"].isin(imdb_matches)]
+            chunk = chunk[chunk["tconst"].isin(imdb_matches)].copy()
             if chunk.empty:
                 continue
 
+            # Obtain cleaned roles, erasing None
+            chunk["characters"] = MediaCleaningUtils.clean_characters(chunk)
+            chunk["job"] = MediaCleaningUtils.clean_job(chunk)
+            chunk["role"] = chunk["characters"].combine_first(chunk["job"])
+            # Obtain playmethod
+            chunk["play_method"] = MediaCleaningUtils.clean_category(chunk)
+            chunk = chunk.dropna(subset=["play_method"])
+            chunk = chunk.drop_duplicates(subset=["nconst", "play_method", "role"])
+            # Map to metacritic media
+            chunk["ref_id"] = chunk["tconst"].replace(imdb_matches, regex=False)
+
+            # Map distinct people
             for row in chunk.itertuples(index=False):
                 media_id = imdb_matches[row.tconst]
-
-                role = None
-                if row.characters != "\\N":
-                    role = MediaCleaningUtils.clean_role(row.characters)
-                elif row.job != "\\N":
-                    role = row.job
-
-                play_method = MediaCleaningUtils.normalize_play_method(row.category)
-
                 MediaMappingUtils.map_distinct_value(
                     {
                         "ref_id": media_id,
                         "nconst": row.nconst,
-                        "play_method": play_method,
-                        "role": role,
+                        "play_method": row.play_method,
+                        "role": row.role,
                     },
                     role_connection,
                     pk_attributes=["nconst", "play_method", "role"],
                 )
                 required_nconsts.add(row.nconst)
 
-            if chunk_idx % 5 == 0:
-                print(f"Scanned {chunk_idx * chunksize:,} IMDb CHARACTERS rows...")
+            print(f"Scanned {chunk_idx * chunksize:,} IMDb CHARACTERS rows...")
 
         nconst_to_name = {}
-
         names_path = imdb_dir / "name.basics.tsv.gz"
+
+        print("[IMDb] Scanning name.basics.tsv.gz")
 
         for chunk_idx, chunk in enumerate(
             pd.read_csv(
@@ -289,6 +295,7 @@ class MediaBuilder:
             if chunk.empty:
                 continue
 
+            # merge chunk and roles
             for row in chunk.itertuples(index=False):
                 nconst_to_name[row.nconst] = row.primaryName
 
@@ -298,13 +305,9 @@ class MediaBuilder:
                 primary_name = nconst_to_name.get(role_attributes["nconst"])
                 if not primary_name:
                     continue
-
                 role_attributes["person_name"] = primary_name
 
-                if role_attributes.get("role") == "self":
-                    role_attributes["play_method"] = primary_name
-
-        print("[IMDb] yey we done from reading !!")
+        print("< [IMDb] Finished joinning roles >")
         return role_connection
 
     ##################################################################

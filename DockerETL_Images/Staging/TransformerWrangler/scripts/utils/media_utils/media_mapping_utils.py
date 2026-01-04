@@ -29,7 +29,7 @@ class MediaMappingUtils:
             )
 
     def remap_foreign_keys_and_build_distinct_rows(
-        main_rows, distinct_value_set, foreign_key_attribute
+        main_rows, distinct_value_set, foreign_key_attribute, value_map=None
     ):
         distinct_rows = []
         for distinct_row in distinct_value_set.values():

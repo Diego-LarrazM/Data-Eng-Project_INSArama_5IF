@@ -1,4 +1,5 @@
 import pandas as pd
+import numpy as np
 import re
 
 
@@ -26,25 +27,29 @@ class MediaCleaningUtils:
 
         return df
 
-    def clean_role(role: str | None) -> str | None:
-        if not isinstance(role, str) or role == "\\N":
-            return None
-        print(role)
-        cleaned = cleaned.strip("[]")
-        cleaned = re.sub(r"[\"\']", "", cleaned)
-        # cleaned = re.sub(r"\s*,\s*", ", ", cleaned)
-        print("after: ", cleaned.strip())
-        return cleaned.strip() if cleaned else None
+    def clean_characters(df: pd.DataFrame) -> pd.DataFrame:
+        return (
+            df["characters"]
+            .replace("\\N", pd.NA, regex=False)
+            .str.strip("[]")
+            .str.replace(r"[\"\']", "", regex=True)
+            .str.replace("Self -", "", regex=True)
+            .str.strip()
+            .replace(["", "Self"], pd.NA, regex=False)
+        )
 
-    def normalize_play_method(play_method: str | None) -> str | None:
-        if not isinstance(play_method, str) and play_method is None:
-            return None
+    def clean_job(df: pd.DataFrame) -> pd.DataFrame:
+        return df["job"].replace("\\N", pd.NA, regex=False)
 
-        play_method = play_method.lower().strip()
-
+    def clean_category(dataframe):
         PLAY_METHOD_MAP = {"actress": "actor"}
-
-        return PLAY_METHOD_MAP.get(play_method, play_method)
+        return (
+            dataframe["category"]
+            .str.lower()
+            .str.strip()
+            .replace("\\N", pd.NA, regex=False)
+            .replace(PLAY_METHOD_MAP, regex=False)
+        )
 
     def filter_year_equivalent_candidates(chunk_df, targets_df):
         year_equivalent_targets = pd.merge(
@@ -66,6 +71,9 @@ class MediaCleaningUtils:
         runtime_equivalence_mask = (
             targets_df["target_runtime"] - targets_df["runtimeMinutes"]
         ).abs() <= runtime_minutes_interval
+        unknown_mask = (targets_df["target_runtime"] == 0) | (
+            targets_df["runtimeMinutes"] == 0
+        )  # in case one of them was None
 
-        runtime_equivalent_targets = targets_df[runtime_equivalence_mask]
+        runtime_equivalent_targets = targets_df[runtime_equivalence_mask | unknown_mask]
         return runtime_equivalent_targets
