@@ -43,60 +43,25 @@ IMDB_TITLE_STOPWORDS = {"the", "a", "and", "as"}
 
 class MediaTokenUtils:
 
-    def could_be_same_media(
-        expected_year: int,
-        imdb_year: int,
-        expected_runtime: int,
-        imdb_runtime: str,
-        acceptance_year_interval: int,
-        acceptance_runtime_interval: int,
-    ) -> bool:
-        year_equivalence = False
-        if imdb_year != "\\N" and expected_year is not None and imdb_year is not None:
-            year_equivalence = (
-                abs(expected_year - int(imdb_year)) <= acceptance_year_interval
-            )
-
-        runtime_equivalence = True
-        if (
-            imdb_runtime != "\\N"
-            and expected_runtime is not None
-            and imdb_runtime is not None
-        ):
-            runtime_equivalence = (
-                abs(expected_runtime - int(imdb_runtime)) <= acceptance_runtime_interval
-            )
-
-        return runtime_equivalence and year_equivalence
-
-    def tokenize_IMDB_title(title: str) -> set[str] | None:
-        if not title:
-            return None
-        title = title.lower()
-        # Remove startYear (1900–2099)
-        title = re.sub(r"\b(19|20)\d{2}\b", "", title)
-        # Remove non characters or nums
-        re.sub(r"[^\w]", " ", title)
-        # Collapse multiple spaces
-        # title = re.sub(r"\s+", " ", title)
-        # Strip leading/trailing spaces
-        # title = title.strip()
-        # Erase stopwords
-        tokens = (
-            set(re.findall(r"\w+", title)) if title else None
-        )  # - IMDB_TITLE_STOPWORDS
-        return tokens
+    def normalize_title(dataframe, input_col):
+        return (
+            dataframe[input_col]
+            .str.lower()
+            .str.replace(r"\b(19|20)\d{2}\b", "", regex=True)
+            .str.replace(r"[^\w^\s]", "", regex=True)
+            .str.findall(r"\w+")
+        )
 
     def jaccard_title_similarity(a: str, b: str) -> float:
-        set_a = MediaTokenUtils.tokenize_IMDB_title(a)
-        set_b = MediaTokenUtils.tokenize_IMDB_title(b)
+        set_a = set(a) if a else None
+        set_b = set(b) if b else None
 
         if not set_a and not set_b:
             return 1.0
         if not set_a or not set_b:
             return 0.0
 
-        return set_a == set_b  # len(set_a & set_b) / len(set_a | set_b)
+        return len(set_a & set_b) / len(set_a | set_b)
 
     def cluster_attribute_jaccard(
         dataframe,

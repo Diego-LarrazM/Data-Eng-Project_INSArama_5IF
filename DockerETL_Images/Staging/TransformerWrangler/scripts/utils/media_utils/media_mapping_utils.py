@@ -42,3 +42,58 @@ class MediaMappingUtils:
             del distinct_row["refs"]
             distinct_rows.append(distinct_row)
         return distinct_rows
+
+    def map_best_candidate_to_target_title(candidates, result, best_found):
+
+        # candidate: row of imdb merged with possible metacritic_title and similarity
+        # result: tconst -> metacritic_title
+        # best_similarity_found: metacritic_title_id -> [max_similarity_found_for_him, tconst]
+
+        matches_c = 0
+        for row in candidates.itertuples():
+            tconst = row.tconst
+            target_id = row.target_id
+            similarity = row.similarity
+
+            # Check if target_id already has a better match
+            if (
+                target_id not in best_found
+                or best_found[target_id]["similarity"] < similarity
+            ):
+
+                # If already assigned and indeed a better match
+                if target_id in best_found:
+                    old_tconst = best_found[target_id]["associated"]
+                    print(
+                        f"Deleting previous assignment: {row.target_title} -> {best_found[target_id]["titleIMDB"]} ({best_found[target_id]["similarity"]})"
+                    )
+                    matches_c -= 1
+                    del result[old_tconst]
+
+                # Check if imdb title already assigned somewhere else (uniqueness of IMDB_title matching)
+                if tconst in result:
+                    old_target = result[tconst]
+                    old_similarity = best_found[old_target]["similarity"]
+                    if similarity <= old_similarity:
+                        continue  # skip, this match is worse than existing
+                    else:
+                        # remove old worse assignment
+                        print(
+                            f"Deleting previous assignment: {row.primaryTitle} was assigned to "
+                            f"{old_target}  with similarity {old_similarity}"
+                        )
+                        matches_c -= 1
+                        del best_found[old_target]
+
+                # Assign new match
+                best_found[target_id] = {
+                    "similarity": similarity,
+                    "associated": tconst,
+                    "titleIMDB": row.primaryTitle,
+                }
+                result[tconst] = target_id
+                matches_c += 1
+                print(
+                    f"New King of the Hill: {row.target_title} -> {row.primaryTitle} ({similarity})"
+                )
+        return matches_c

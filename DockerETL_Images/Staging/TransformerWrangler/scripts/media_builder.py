@@ -138,67 +138,6 @@ class MediaBuilder:
             return None
         return pd.DataFrame(targets_data)
 
-    def filter_year_equivalent_candidates(chunk_df, targets_df):
-        year_equivalent_targets = pd.merge(
-            chunk_df, targets_df, left_on="startYear", right_on="join_year", how="inner"
-        )
-
-        if year_equivalent_targets.empty:
-            return year_equivalent_targets
-
-        # Turn to num minutes, even nulls
-        year_equivalent_targets["runtimeMinutes"] = pd.to_numeric(
-            year_equivalent_targets["runtimeMinutes"], errors="coerce"
-        ).fillna(0)
-        year_equivalent_targets["target_runtime"] = year_equivalent_targets[
-            "target_runtime"
-        ].fillna(0)
-        return year_equivalent_targets
-
-    def filter_runtime_equivalent_targets(targets_df, runtime_minutes_interval=2):
-        runtime_equivalence_mask = (
-            targets_df["target_runtime"] - targets_df["runtimeMinutes"]
-        ).abs() <= 2
-        unknown_mask = (targets_df["target_runtime"] == 0) | (
-            targets_df["runtimeMinutes"] == 0
-        )  # in case one of them was None
-
-        runtime_equivalent_targets = targets_df[runtime_equivalence_mask | unknown_mask]
-        return runtime_equivalent_targets
-
-    def map_best_candidate_to_target_title(candidates, result, best_found):
-
-        # candidate: row of imdb merged with possible metacritic_title and similarity
-        # result: tconst -> metacritic_title
-        # best_similarity_found: metacritic_title_id -> [max_similarity_found_for_him, tconst]
-
-        for row in candidates.itertuples():
-            imdb_ttid = row.tconst
-            candidate_id = row.target_id
-            similarity = row.similarity
-            if candidate_id not in best_found:
-                print(
-                    f"King of the Hill: {row.target_title} -> {row.primaryTitle} ({similarity})"
-                )
-                best_found[candidate_id] = {
-                    "similarity": similarity,
-                    "associated": imdb_ttid,
-                }
-                result[imdb_ttid] = candidate_id
-            # Check if better match than prior (King of the Hill)
-            elif best_found[candidate_id]["similarity"] < similarity:
-                print(
-                    f"New King of the Hill: {row.target_title} -> {row.primaryTitle} ({similarity})"
-                )
-                del result[
-                    best_found[candidate_id]["associated"]
-                ]  # takeout prior worse match
-                best_found[candidate_id] = {
-                    "similarity": similarity,
-                    "associated": imdb_ttid,
-                }
-                result[imdb_ttid] = candidate_id
-
     def build_imdb_tconst_lookup_by_primary_title(
         media_rows: dict,
         title_basics_path: Path,
@@ -210,6 +149,7 @@ class MediaBuilder:
         result = {}
         best_similarity_found = {}
         targets_df = MediaBuilder.build_media_targets(media_rows)
+        total_matched = 0
 
         if targets_df is None:
             return {}
@@ -231,12 +171,12 @@ class MediaBuilder:
             ),
             start=1,
         ):
-            chunk_df = MediaCleaningUtils.IMDB_clean_filter(
+            chunk_df = MediaCleaningUtils.IMDB_acceptable_filter(
                 chunk_df, year_to_title=title_year_set
             )
             print(f"CLEANED : {chunksize - chunk_df.shape[0]}")
 
-            candidates = MediaBuilder.filter_year_equivalent_candidates(
+            candidates = MediaCleaningUtils.filter_year_equivalent_candidates(
                 chunk_df, targets_df
             )
 
@@ -244,25 +184,33 @@ class MediaBuilder:
                 print(f"None found in same year")
                 continue
 
-            candidates = MediaBuilder.filter_runtime_equivalent_targets(candidates)
+            candidates = MediaCleaningUtils.filter_runtime_equivalent_targets(
+                candidates
+            )
             if candidates.empty:
                 print(f"None found for same runtime")
                 continue
 
-            # Recherche des ressamblants par jaccard parmis les candidats
+            candidates["normTIMDB"] = MediaTokenUtils.normalize_title(
+                candidates, "primaryTitle"
+            )
+            candidates["normTTARGET"] = MediaTokenUtils.normalize_title(
+                candidates, "target_title"
+            )
             candidates["similarity"] = candidates.apply(
                 lambda row: MediaTokenUtils.jaccard_title_similarity(
-                    row["primaryTitle"], row["target_title"]
+                    row["normTIMDB"], row["normTTARGET"]
                 ),
                 axis=1,
             )
-            candidates = candidates[candidates["similarity"] >= 0.85]
-            print(f"MATCHES : {candidates.shape[0]}")
 
-            MediaBuilder.map_best_candidate_to_target_title(
+            candidates = candidates[candidates["similarity"] >= 0.6]
+
+            matches = MediaMappingUtils.map_best_candidate_to_target_title(
                 candidates, result, best_similarity_found
             )
-
+            total_matched += matches
+            print(f"MATCHES : {matches} - total : {total_matched}/{len(media_rows)}")
             print(f"Scanned {chunk_idx * chunksize:,} IMDb rows...")
 
         return result
@@ -315,7 +263,7 @@ class MediaBuilder:
                         "role": role,
                     },
                     role_connection,
-                    pk_attributes=["nconst", "role", "play_method"],
+                    pk_attributes=["nconst", "play_method", "role"],
                 )
                 required_nconsts.add(row.nconst)
 
