@@ -137,7 +137,7 @@ def setup_metacritic_data(loader: MongoLoader):
     LOG.info("-> Mapped Companies")
 
     time_rows = MediaMappingUtils.remap_foreign_keys_and_build_distinct_rows(
-        review_rows, time_connection, "time_id"#, null_check_collums=["year"]
+        review_rows, time_connection, "time_id"  # , null_check_collums=["year"]
     )
     del time_connection
     LOG.info("-> Mapped Timestamps")
@@ -211,6 +211,9 @@ def setup_metacritic_data(loader: MongoLoader):
     )
     del review_rows
     reviews_df = reviews_df.dropna(subset=["rating"])
+    reviews_df = reviews_df.drop_duplicates(
+        subset=["time_id", "section_id", "reviewer_id", "media_info_id"]
+    )
     reviews_df.to_csv(OUTPUT_DIR / "FACT_REVIEWS.csv", sep="|", encoding="utf-8")
     reviews_df = reviews_df.where(reviews_df.notna(), None)
 

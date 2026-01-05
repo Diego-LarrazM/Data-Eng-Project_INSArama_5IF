@@ -9,9 +9,9 @@ class TimeDimORM(ModelsBase):
     id = Column(String, primary_key=True, nullable=False)
 
     # Fields
-    year = Column(Integer, nullable=False)
-    month = Column(Integer, nullable=False)
-    day = Column(Integer, nullable=False)
+    year = Column(Integer, nullable=True)
+    month = Column(Integer, nullable=True)
+    day = Column(Integer, nullable=True)
 
     def __repr__(self):
         return (
