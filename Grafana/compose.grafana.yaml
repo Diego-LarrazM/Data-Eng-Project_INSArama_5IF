@@ -20,8 +20,8 @@ services:
       # GF_DATABASE_USER: ${DW_POSTGRES_USER}
       # GF_DATABASE_PASSWORD: ${DW_POSTGRES_PASSWORD}
       # GF_DATABASE_SSL_MODE: disable
-    # depends_on:
-    #   - insm_postgres_data_warehouse # postgres data warehouse must exists before launch to store dashboards there
+    depends_on:
+      - insm_postgres_data_warehouse # postgres data warehouse must exists before launch to store dashboards there
     volumes:
       #- ./grafana_storage:/var/lib/grafana    # We currently want it stateless
       - ./configurations/dashboard_providers:/etc/grafana/provisioning/dashboards # Configuring all dashboard providers via yaml files
