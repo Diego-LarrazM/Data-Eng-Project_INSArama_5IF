@@ -6,7 +6,7 @@ class SectionDimORM(ModelsBase):
     __tablename__ = "DIM_SECTION"
 
     # Primary Keys
-    id = Column(Integer, primary_key=True, nullable=False)
+    id = Column(String, primary_key=True, nullable=False)
 
     # Fields
     section_type = Column(String, nullable=False)

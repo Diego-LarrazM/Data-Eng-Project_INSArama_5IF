@@ -1,12 +1,12 @@
 from . import ModelsBase
-from sqlalchemy import Column, Integer, Float, String
+from sqlalchemy import Column, String, String
 
 
 class CompanyORM(ModelsBase):
     __tablename__ = "COMPANIES"
 
     # Primary Keys
-    id = Column(Integer, primary_key=True, nullable=False)
+    id = Column(String, primary_key=True, nullable=False)
 
     # Fields
     company_role = Column(String, nullable=False)

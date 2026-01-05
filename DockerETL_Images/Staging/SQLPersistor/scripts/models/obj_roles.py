@@ -1,12 +1,12 @@
 from . import ModelsBase
-from sqlalchemy import Column, Integer, String
+from sqlalchemy import Column, String
 
 
 class RoleORM(ModelsBase):
     __tablename__ = "ROLES"
 
     # Primary Keys
-    id = Column(Integer, primary_key=True, nullable=False)
+    id = Column(String, primary_key=True, nullable=False)
 
     # Fields
     person_name = Column(String, nullable=False)

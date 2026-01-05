@@ -8,22 +8,22 @@ class ReviewsFactORM(ModelsBase):
 
     # Primary Keys
     reviewer_id = Column(
-        Integer,
+        String,
         ForeignKey("DIM_REVIEWER.id"),
         primary_key=True,
         nullable=False,
     )
     time_id = Column(
-        Integer, ForeignKey("DIM_TIME.id"), primary_key=True, nullable=False
+        String, ForeignKey("DIM_TIME.id"), primary_key=True, nullable=False
     )
     section_id = Column(
-        Integer,
+        String,
         ForeignKey("DIM_SECTION.id"),
         primary_key=True,
         nullable=False,
     )
     media_info_id = Column(
-        Integer,
+        String,
         ForeignKey("DIM_MEDIA_INFO.id"),
         primary_key=True,
         nullable=False,

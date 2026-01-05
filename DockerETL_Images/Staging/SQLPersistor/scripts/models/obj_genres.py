@@ -1,12 +1,12 @@
 from . import ModelsBase
-from sqlalchemy import Column, Integer, String
+from sqlalchemy import Column, String
 
 
 class GenreORM(ModelsBase):
     __tablename__ = "GENRES"
 
     # Primary Keys
-    id = Column(Integer, primary_key=True, nullable=False)
+    id = Column(String, primary_key=True, nullable=False)
 
     # Fields
     genre_title = Column(String, nullable=False)

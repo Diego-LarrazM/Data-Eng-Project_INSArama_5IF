@@ -1,5 +1,5 @@
 from . import ModelsBase
-from sqlalchemy import Column, Integer, Float, ForeignKey
+from sqlalchemy import Column, String, Float, ForeignKey
 from sqlalchemy.orm import relationship
 
 
@@ -8,12 +8,12 @@ class MediaRoleBridgeORM(ModelsBase):
 
     # Primary Keys
     media_id = Column(
-        Integer,
+        String,
         ForeignKey("DIM_MEDIA_INFO.id"),
         primary_key=True,
         nullable=False,
     )
-    role_id = Column(Integer, ForeignKey("ROLES.id"), primary_key=True, nullable=False)
+    role_id = Column(String, ForeignKey("ROLES.id"), primary_key=True, nullable=False)
 
     # Fields
     weight = Column(Float, nullable=False)

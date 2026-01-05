@@ -1,12 +1,12 @@
 from . import ModelsBase
-from sqlalchemy import Column, Integer
+from sqlalchemy import Column, Integer, String
 
 
 class TimeDimORM(ModelsBase):
     __tablename__ = "DIM_TIME"
 
     # Primary Keys
-    id = Column(Integer, primary_key=True, nullable=False)
+    id = Column(String, primary_key=True, nullable=False)
 
     # Fields
     year = Column(Integer, nullable=False)
