@@ -1,5 +1,5 @@
 services:
-  grafana: # MUST MATCH DW_POSTGRES_HOST in .env
+  grafana:
     image: grafana/grafana
     container_name: ${GF_CONTAINER_NAME}
     environment:
