@@ -18,5 +18,5 @@ datasources:
       password: ${DW_POSTGRES_PASSWORD}
     jsonData:
       sslmode: "disable"
-    editable: false # Prevent manual editing of this data source in the Grafana UI
+    editable: true # Prevent manual editing of this data source in the Grafana UI
     

@@ -3,9 +3,16 @@ services:
     image: grafana/grafana
     container_name: ${GF_CONTAINER_NAME}
     environment:
+      # Grafana auth
       - GF_SECURITY_ADMIN_USER=${GF_USER}
       - GF_SECURITY_ADMIN_PASSWORD=${GF_PASSWORD}
       - GF_PATHS_PROVISIONING=/etc/grafana/provisioning
+      # Postgres Database connection
+      - DW_POSTGRES_HOST=${DW_POSTGRES_HOST}
+      - DW_POSTGRES_DB=${DW_POSTGRES_DB}
+      - DW_POSTGRES_USER=${DW_POSTGRES_USER}
+      - DW_POSTGRES_PASSWORD=${DW_POSTGRES_PASSWORD}
+
       # Using Postgres as Grafana DB backend
       # GF_DATABASE_TYPE: postgres
       # GF_DATABASE_HOST: ${DW_POSTGRES_HOST}:5432
