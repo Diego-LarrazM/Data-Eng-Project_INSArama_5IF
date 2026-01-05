@@ -137,7 +137,7 @@ def setup_metacritic_data(loader: MongoLoader):
     LOG.info("-> Mapped Companies")
 
     time_rows = MediaMappingUtils.remap_foreign_keys_and_build_distinct_rows(
-        review_rows, time_connection, "time_id", null_check_collums=["year"]
+        review_rows, time_connection, "time_id"#, null_check_collums=["year"]
     )
     del time_connection
     LOG.info("-> Mapped Timestamps")
@@ -155,31 +155,30 @@ def setup_metacritic_data(loader: MongoLoader):
     LOG.info("-> Mapped Sections")
 
     LOG.info("[ Saving to CSV... ]")
-    # MediaBuilder.build_and_save_dataframe_from_rows(
-    #     genre_rows, OUTPUT_DIR / "GENRES.csv"
-    # )
-    # df = df.where(pd.notna(df), None) # Normalize nulls
+    MediaBuilder.build_and_save_dataframe_from_rows(
+        genre_rows, OUTPUT_DIR / "GENRES.csv"
+    )
     LOG.info(f"Loading collection: GENRES...")
     loader.load_from_dict(genre_rows, "GENRES", batch_size=10000)
     del genre_rows
 
-    # MediaBuilder.build_and_save_dataframe_from_rows(
-    #     company_rows, OUTPUT_DIR / "COMPANIES.csv"
-    # )
+    MediaBuilder.build_and_save_dataframe_from_rows(
+        company_rows, OUTPUT_DIR / "COMPANIES.csv"
+    )
     LOG.info(f"Loading collection: COMPANIES...")
     loader.load_from_dict(company_rows, "COMPANIES", batch_size=10000)
     del company_rows
 
-    # MediaBuilder.build_and_save_dataframe_from_rows(
-    #     time_rows, OUTPUT_DIR / "DIM_TIME.csv"
-    # )
+    MediaBuilder.build_and_save_dataframe_from_rows(
+        time_rows, OUTPUT_DIR / "DIM_TIME.csv"
+    )
     LOG.info(f"Loading collection: DIM_TIME...")
     loader.load_from_dict(time_rows, "DIM_TIME", batch_size=10000)
     del time_rows
 
-    # MediaBuilder.build_and_save_dataframe_from_rows(
-    #     reviewer_rows, OUTPUT_DIR / "DIM_REVIEWER.csv"
-    # )
+    MediaBuilder.build_and_save_dataframe_from_rows(
+        reviewer_rows, OUTPUT_DIR / "DIM_REVIEWER.csv"
+    )
     LOG.info(f"Loading collection: DIM_REVIEWER...")
     loader.load_from_dict(reviewer_rows, "DIM_REVIEWER", batch_size=10000)
     del reviewer_rows
@@ -202,7 +201,7 @@ def setup_metacritic_data(loader: MongoLoader):
         batch_size=10000,
         id_col_name="id",
     )
-    # section_df.to_csv(OUTPUT_DIR / "DIM_SECTION.csv", sep="|", encoding="utf-8")
+    section_df.to_csv(OUTPUT_DIR / "DIM_SECTION.csv", sep="|", encoding="utf-8")
     del section_df
 
     reviews_df = MediaBuilder.build_and_save_dataframe_from_rows(
@@ -212,7 +211,7 @@ def setup_metacritic_data(loader: MongoLoader):
     )
     del review_rows
     reviews_df = reviews_df.dropna(subset=["rating"])
-    # reviews_df.to_csv(OUTPUT_DIR / "FACT_REVIEWS.csv", sep="|", encoding="utf-8")
+    reviews_df.to_csv(OUTPUT_DIR / "FACT_REVIEWS.csv", sep="|", encoding="utf-8")
     reviews_df = reviews_df.where(reviews_df.notna(), None)
 
     LOG.info("< Finished with Metacritic >")
@@ -240,7 +239,7 @@ def setup_and_join_imdb_data_for_roles(media_rows, title_year_set, loader: Mongo
 
     role_df = MediaBuilder.build_and_save_dataframe_from_rows(role_rows)
     role_df = role_df.drop(columns=["nconst"])
-    # role_df.to_csv(OUTPUT_DIR / "ROLES.csv", sep="|", encoding="utf-8")
+    role_df.to_csv(OUTPUT_DIR / "ROLES.csv", sep="|", encoding="utf-8")
     loader.load_from_dict(
         role_df.to_dict(orient="index"), "ROLES", batch_size=10000, id_col_name="id"
     )
@@ -255,31 +254,31 @@ def setup_bridges(media_rows, loader: MongoLoader):
         media_rows, ["genre_id", "company_id", "role_id"], "media_id"
     )
 
-    # MediaBuilder.build_and_save_dataframe_from_rows(
-    #     bridge_dfs_media_info["genre_id"],
-    #     OUTPUT_DIR / "BRIDGE_MEDIA_GENRE.csv",
-    #     id_attribute_names=["media_id", "genre_id"],
-    # )
+    MediaBuilder.build_and_save_dataframe_from_rows(
+        bridge_dfs_media_info["genre_id"],
+        OUTPUT_DIR / "BRIDGE_MEDIA_GENRE.csv",
+        id_attribute_names=["media_id", "genre_id"],
+    )
     loader.load_from_dict(
         bridge_dfs_media_info["genre_id"], "BRIDGE_MEDIA_GENRE", batch_size=10000
     )
     del bridge_dfs_media_info["genre_id"]
 
-    # MediaBuilder.build_and_save_dataframe_from_rows(
-    #     bridge_dfs_media_info["company_id"],
-    #     OUTPUT_DIR / "BRIDGE_MEDIA_COMPANY.csv",
-    #     id_attribute_names=["media_id", "company_id"],
-    # )
+    MediaBuilder.build_and_save_dataframe_from_rows(
+        bridge_dfs_media_info["company_id"],
+        OUTPUT_DIR / "BRIDGE_MEDIA_COMPANY.csv",
+        id_attribute_names=["media_id", "company_id"],
+    )
     loader.load_from_dict(
         bridge_dfs_media_info["company_id"], "BRIDGE_MEDIA_COMPANY", batch_size=10000
     )
     del bridge_dfs_media_info["company_id"]
 
-    # MediaBuilder.build_and_save_dataframe_from_rows(
-    #     bridge_dfs_media_info["role_id"],
-    #     OUTPUT_DIR / "BRIDGE_MEDIA_ROLE.csv",
-    #     id_attribute_names=["media_id", "role_id"],
-    # )
+    MediaBuilder.build_and_save_dataframe_from_rows(
+        bridge_dfs_media_info["role_id"],
+        OUTPUT_DIR / "BRIDGE_MEDIA_ROLE.csv",
+        id_attribute_names=["media_id", "role_id"],
+    )
     loader.load_from_dict(
         bridge_dfs_media_info["role_id"], "BRIDGE_MEDIA_ROLE", batch_size=10000
     )
@@ -304,7 +303,7 @@ if __name__ == "__main__":
     media_df = MediaTokenUtils.cluster_attribute_jaccard(
         media_df, "primary_title", "franchise", type_attribute="media_type"
     )
-    # media_df.to_csv(OUTPUT_DIR / "DIM_MEDIA_INFO.csv", sep="|", encoding="utf-8")
+    media_df.to_csv(OUTPUT_DIR / "DIM_MEDIA_INFO.csv", sep="|", encoding="utf-8")
     LOG.info(f"Loading collection: DIM_MEDIA_INFO...")
     media_df = media_df.where(media_df.notna(), None)
     loader.load_from_dict(
