@@ -90,6 +90,7 @@ x-airflow-common: &airflow-common
     - INSARAMA_SOURCE_DATA:/opt/airflow/data
     - ${AIRFLOW_PROJ_DIR:-.}/.env:/opt/airflow/.env # Docker Container Env
     - ${AIRFLOW_PROJ_DIR:-.}/setup_mongo_transient_storage.sh:/opt/airflow/setup_mongo_transient_storage.sh # Mongo Transient Server setup shell-script
+    - ${AIRFLOW_PROJ_DIR:-.}/stop_mongo_transient_storage.sh:/opt/airflow/stop_mongo_transient_storage.sh # Mongo Transient Server remove shell-script
     - /var/run/docker.sock:/var/run/docker.sock # to enable DockerOperator
     - INSARAMA_DOCKERETL_IMAGES:/opt/airflow/dockerETL_images # to share built images from Docker ETL compose file
   user: "${AIRFLOW_UID:-50000}:0"

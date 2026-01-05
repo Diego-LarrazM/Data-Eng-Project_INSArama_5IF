@@ -14,7 +14,7 @@ class MediaBuilder:
 
     def build_mediainfo_rows(data, media_type, year_to_titles):
         md = data.get("media_details", {})
-        media_info_id = uuid.uuid4()
+        media_info_id = str(uuid.uuid4())
         genre_rows = [
             {"ref_id": media_info_id, "genre_title": g.strip()}
             for g in md.get("genres", [])
@@ -70,7 +70,7 @@ class MediaBuilder:
 
         for section, reviews in MediaExtractUtils.extract_all_reviews(data):
             for r in reviews:
-                review_id = uuid.uuid4()
+                review_id = str(uuid.uuid4())
                 # Append review
                 review_rows |= {
                     review_id: {
@@ -143,7 +143,7 @@ class MediaBuilder:
         media_rows: dict,
         title_basics_path: Path,
         title_year_set: set,
-        chunksize: int = 4_000_000,
+        chunksize: int = 5_000_000,
     ) -> dict:
 
         LOG.info(f"[ IMDb: Starting Join: finding common titles to join roles ... ]")
@@ -222,7 +222,7 @@ class MediaBuilder:
     def build_roles_for_media(
         imdb_matches: dict,
         imdb_dir: Path,
-        chunksize: int = 4_000_000,
+        chunksize: int = 5_000_000,
     ) -> pd.DataFrame:
         LOG.info("\n[ IMDb: Extracting roles for media ]")
 

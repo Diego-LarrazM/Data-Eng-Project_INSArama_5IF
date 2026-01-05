@@ -1,6 +1,7 @@
 from pymongo import MongoClient  # , AsyncMongoClient
 from pymongo.client_session import ClientSession
 from typing import Callable, Any
+import pandas as pd
 
 from .execution import *
 from .batch_generator import BatchGenerator
@@ -57,9 +58,42 @@ class MongoLoader:
     def __init__(self, mongo_conn_url: str, database: str):
         # Set up MongoDB connection
         self.client = MongoClient(
-            host=mongo_conn_url
+            host=mongo_conn_url, uuidRepresentation="standard"
         )  # or AsyncMongoClient for async operations
         self.db = self.client[database]
+
+    @safe_execute
+    def load_from_dict(
+        self,
+        rows,
+        collection_name: str,
+        id_col_name=None,
+        session: ClientSession = None,
+        batch_size: int = 1000,
+        ordered=False,
+    ):
+        # Generator
+        def index_oriented_gen(dict_rows):
+            # data = {
+            #     idrow1: {"colA": valA, "colB": valB},
+            #     idrow2: {"colA": valA2, "colB": valB2},
+            # }
+            for id, columns in dict_rows.items():
+                if id_col_name:
+                    columns[id_col_name] = id
+                yield columns
+
+        row_gen = rows
+        if isinstance(rows, dict):
+            row_gen = index_oriented_gen(rows)
+
+        batch_gen = BatchGenerator(generator=row_gen, batch_size=batch_size)
+        # Loading
+        collection = self.db[collection_name]
+        for batch in batch_gen:
+            collection.insert_many(batch, session=session, ordered=ordered)
+
+        return SUCCESS
 
     @safe_execute
     def load_from_csv(
@@ -78,7 +112,7 @@ class MongoLoader:
         if not os.path.exists(file_path):
             raise Exception(f"File {file_path} does not exist.")
         collection = self.db[collection_name]
-
+        # Filter eventually
         filter_func = None
         if filter:
             filter_func = MongoLoader._make_filter_func(

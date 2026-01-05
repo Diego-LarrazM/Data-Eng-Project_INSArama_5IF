@@ -19,7 +19,7 @@ class MediaMappingUtils:
             distinct_value_set[distinct_pk_key]["refs"].append(ref_id)
         else:
             distinct_value_set[distinct_pk_key] = {
-                "id": uuid.uuid4(),
+                "id": str(uuid.uuid4()),
                 "refs": [ref_id],
             } | new_row_to_add
 
@@ -33,25 +33,26 @@ class MediaMappingUtils:
         main_rows,
         distinct_value_set,
         foreign_key_attribute,
-        null_check_collums=[],
-        value_map=None,
+        # null_check_collums=[],
+        # value_map=None,
     ):
         distinct_rows = []
         for distinct_row in distinct_value_set.values():
-            valid_row = True
-            for col in null_check_collums:
-                valid_row = distinct_row[col] is not None
-                if not valid_row:
-                    break
-            if not valid_row:
-                continue
+            # valid_row = True
+            # for col in null_check_collums:
+            #     valid_row = distinct_row[col] is not None
+            #     if not valid_row:
+            #         break
+            # if not valid_row:
+            #     continue
 
             for ref_id in distinct_row["refs"]:
                 foreign_key = distinct_row["id"]
 
                 if main_rows[ref_id][foreign_key_attribute] is None:
                     main_rows[ref_id][foreign_key_attribute] = foreign_key
-                elif valid_row:
+                # elif valid_row:
+                else:
                     main_rows[ref_id][foreign_key_attribute].append(foreign_key)
             del distinct_row["refs"]
             distinct_rows.append(distinct_row)

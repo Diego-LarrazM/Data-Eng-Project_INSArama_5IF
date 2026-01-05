@@ -1,5 +1,5 @@
 from . import ModelsBase
-from sqlalchemy import Column, Integer, String, Float, DateTime
+from sqlalchemy import Column, String, Float
 
 
 class MediaInfoDimORM(ModelsBase):
@@ -12,9 +12,9 @@ class MediaInfoDimORM(ModelsBase):
     media_type = Column(String, nullable=False)
     franchise = Column(String, nullable=True)
     primary_title = Column(String, nullable=False)
-    release_date = Column(DateTime, nullable=False)
+    release_date = Column(String, nullable=False)
     duration = Column(Float, nullable=True)
-    pegi_mpa_rating = Column(Integer, nullable=True)
+    pegi_mpa_rating = Column(String, nullable=True)
     description = Column(String, nullable=True)
 
     def __repr__(self):
