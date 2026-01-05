@@ -9,6 +9,7 @@
 **/*.py[cod]
 **/*.pyo
 **/*.pyd
+**/*.pytest_cache
 
 # Ignore data warehouse data files
 **/DataWarehouse/data/*
@@ -24,6 +25,9 @@
 # Ignore data warehouse data files
 **/DataWarehouse/data/*
 **/Grafana/grafana_storage/*
+
+**/Data/*
+!**/Data/README.md
 
 **/data/*
 **/output/*

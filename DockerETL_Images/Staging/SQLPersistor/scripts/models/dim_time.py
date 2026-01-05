@@ -1,20 +1,20 @@
 from . import ModelsBase
-from sqlalchemy import Column, Integer
+from sqlalchemy import Column, Integer, String
 
 
 class TimeDimORM(ModelsBase):
     __tablename__ = "DIM_TIME"
 
     # Primary Keys
-    Time_ID = Column(Integer, primary_key=True, nullable=False)
+    id = Column(String, primary_key=True, nullable=False)
 
     # Fields
-    Year = Column(Integer, nullable=False)
-    Month = Column(Integer, nullable=False)
-    Day = Column(Integer, nullable=False)
+    year = Column(Integer, nullable=True)
+    month = Column(Integer, nullable=True)
+    day = Column(Integer, nullable=True)
 
     def __repr__(self):
         return (
-            f"<TimeDimORM(Time_ID={self.Time_ID}, Year={self.Year}, "
-            f"Month={self.Month}, Day={self.Day})>"
+            f"<TimeDimORM(id={self.id}, year={self.year}, "
+            f"month={self.month}, day={self.day})>"
         )

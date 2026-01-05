@@ -1,28 +1,27 @@
 from . import ModelsBase
-from sqlalchemy import Column, Integer, String, Float, DateTime
+from sqlalchemy import Column, String, Float
 
 
 class MediaInfoDimORM(ModelsBase):
     __tablename__ = "DIM_MEDIA_INFO"
 
     # Primary Keys
-    MediaInfo_ID = Column(Integer, primary_key=True, nullable=False)
+    id = Column(String, primary_key=True, nullable=False)
 
     # Fields
-    PrimaryTitle = Column(String, nullable=False)
-    Titlelanguage = Column(String, nullable=False)
-    OriginalTitle = Column(String, nullable=False)
-    MediaType = Column(String, nullable=False)
-    ReleaseDate = Column(DateTime, nullable=False)
-    # Sales = Column(Integer, nullable=True)
-    Duration = Column(Float, nullable=True)
-    Description = Column(String, nullable=True)
-    PEGI_MPA_Rating = Column(Integer, nullable=True)
+    media_type = Column(String, nullable=False)
+    franchise = Column(String, nullable=True)
+    primary_title = Column(String, nullable=False)
+    release_date = Column(String, nullable=False)
+    duration = Column(Float, nullable=True)
+    pegi_mpa_rating = Column(String, nullable=True)
+    description = Column(String, nullable=True)
 
     def __repr__(self):
         return (
-            f"<MediaInfoDimORM(MediaInfo_ID={self.MediaInfo_ID}, PrimaryTitle='{self.PrimaryTitle}', "
-            f"Titlelanguage='{self.Titlelanguage}', OriginalTitle='{self.OriginalTitle}', "
-            f"MediaType='{self.MediaType}', ReleaseDate='{self.ReleaseDate}', "
-            f"Duration={self.Duration}, PEGI_MPA_Rating={self.PEGI_MPA_Rating})>"
+            f"<MediaInfoDimORM(id={self.id}, media_type='{self.media_type}', "
+            f"franchise='{self.franchise}', primary_title='{self.primary_title}', "
+            f"release_date='{self.release_date}', "
+            f"duration={self.duration}min, pegi_mpa_rating='{self.pegi_mpa_rating}', "
+            f"description='{self.description}')>"
         )

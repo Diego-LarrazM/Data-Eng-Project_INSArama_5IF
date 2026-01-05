@@ -1,20 +1,20 @@
 from . import ModelsBase
-from sqlalchemy import Column, Integer, String
+from sqlalchemy import Column, String
 
 
 class RoleORM(ModelsBase):
     __tablename__ = "ROLES"
 
     # Primary Keys
-    Role_ID = Column(Integer, primary_key=True, nullable=False)
+    id = Column(String, primary_key=True, nullable=False)
 
     # Fields
-    PersonName = Column(String, nullable=False)
-    RoleTitle = Column(String, nullable=False)
-    PlayMethod = Column(String, nullable=False)
+    person_name = Column(String, nullable=False)
+    play_method = Column(String, nullable=True)
+    role = Column(String, nullable=False)
 
     def __repr__(self):
         return (
-            f"<RoleORM(Role_ID={self.Role_ID}, PersonName='{self.PersonName}', "
-            f"RoleTitle='{self.RoleTitle}', PlayMethod='{self.PlayMethod}')>"
+            f"<RoleORM(id={self.id}, person_name='{self.person_name}', "
+            f"role='{self.role}', play_method='{self.play_method}')>"
         )

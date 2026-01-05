@@ -363,8 +363,8 @@ def cluster_attribute_jaccard(
             # map for each element of cluster their group label
             df.loc[list(cluster), output_label] = group_label
 
-    df.drop(columns=["_tokens"], inplace=True)
-    df.set_index(og_indexes, inplace=True)  # restore indexes
+    df = df.drop(columns=["_tokens"])
+    df = df.set_index(og_indexes)  # restore indexes
     return df
 
 

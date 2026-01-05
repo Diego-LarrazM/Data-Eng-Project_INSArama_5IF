@@ -6,17 +6,17 @@ class ReviewerDimORM(ModelsBase):
     __tablename__ = "DIM_REVIEWER"
 
     # Primary Keys
-    Reviewer_ID = Column(Integer, primary_key=True, nullable=False)
+    id = Column(String, primary_key=True, nullable=False)
 
     # Fields
-    ReviewerUsername = Column(
+    association = Column(String, nullable=True)  # might be a user, non-critic
+    is_critic = Column(Boolean, nullable=False)
+    reviewer_username = Column(
         String, nullable=True
     )  # not all reviewers post their name
-    IsCritic = Column(Boolean, nullable=False)
-    Association = Column(String, nullable=True)  # might be a user, non-critic
 
     def __repr__(self):
         return (
-            f"<ReviewerDimORM(Reviewer_ID={self.Reviewer_ID}, ReviewerUsername='{self.ReviewerUsername}', "
-            f"IsCritic={self.IsCritic}, Association='{self.Association}')>"
+            f"<ReviewerDimORM(id={self.id}, association='{self.association}', "
+            f"is_critic={self.is_critic} , reviewer_username='{self.reviewer_username}')>"
         )

@@ -1,13 +1,11 @@
 from pymongo import MongoClient  # , AsyncMongoClient
 from pymongo.client_session import ClientSession
 from typing import Callable, Any
+import pandas as pd
 
-try:
-    from utils.execution import *
-    from utils.batch_generator import BatchGenerator
-except ImportError:
-    from .utils.execution import *
-    from .utils.batch_generator import BatchGenerator
+from .execution import *
+from .batch_generator import BatchGenerator
+
 
 import ijson.backends.python as ijson
 import csv
@@ -60,43 +58,81 @@ class MongoLoader:
     def __init__(self, mongo_conn_url: str, database: str):
         # Set up MongoDB connection
         self.client = MongoClient(
-            host=mongo_conn_url
+            host=mongo_conn_url, uuidRepresentation="standard"
         )  # or AsyncMongoClient for async operations
         self.db = self.client[database]
+
+    @safe_execute
+    def load_from_dict(
+        self,
+        rows,
+        collection_name: str,
+        id_col_name=None,
+        session: ClientSession = None,
+        batch_size: int = 1000,
+        ordered=False,
+    ):
+        # Generator
+        def index_oriented_gen(dict_rows):
+            # data = {
+            #     idrow1: {"colA": valA, "colB": valB},
+            #     idrow2: {"colA": valA2, "colB": valB2},
+            # }
+            for id, columns in dict_rows.items():
+                if id_col_name:
+                    columns[id_col_name] = id
+                yield columns
+
+        row_gen = rows
+        if isinstance(rows, dict):
+            row_gen = index_oriented_gen(rows)
+
+        batch_gen = BatchGenerator(generator=row_gen, batch_size=batch_size)
+        # Loading
+        collection = self.db[collection_name]
+        for batch in batch_gen:
+            collection.insert_many(batch, session=session, ordered=ordered)
+
+        return SUCCESS
 
     @safe_execute
     def load_from_csv(
         self,
         file_path: str,
         collection_name: str,
+        delimiter=";",
         session: ClientSession = None,
+        filter=None,
         filter_columns: list[str] = None,
         filter_values_list: list[dict] = None,
         batch_size: int = 1000,
+        ordered=False,
     ) -> ExitCode:
 
         if not os.path.exists(file_path):
             raise Exception(f"File {file_path} does not exist.")
-
         collection = self.db[collection_name]
-
-        filter_func = MongoLoader._make_filter_func(filter_columns, filter_values_list)
+        # Filter eventually
+        filter_func = None
+        if filter:
+            filter_func = MongoLoader._make_filter_func(
+                filter_columns, filter_values_list
+            )
 
         with open(file_path, "r", encoding="utf-8") as csv_file:
-            row_gen = csv.DictReader(csv_file, delimiter=";")
-
+            row_gen = csv.DictReader(csv_file, delimiter=delimiter)
             batch_gen = BatchGenerator(
                 generator=row_gen, batch_size=batch_size, filter_func=filter_func
             )
 
             for batch in batch_gen:
-                collection.insert_many(batch, session=session)
+                collection.insert_many(batch, session=session, ordered=ordered)
 
         return SUCCESS
 
     @safe_execute
     def load_from_json(
-        self, file_path: str, session: ClientSession = None
+        self, file_path: str, session: ClientSession = None, ordered=False
     ) -> ExitCode:  # Does not accept decimals, must be stringyfied
         if not os.path.exists(file_path):
             raise Exception(f"File {file_path} does not exist.")
@@ -106,24 +142,32 @@ class MongoLoader:
             for collection_name, documents in ijson.kvitems(file, ""):  # "" is root
                 collection = self.db[collection_name]
                 for document in documents:
-                    collection.insert_one(document, session=session)
+                    collection.insert_one(document, session=session, ordered=ordered)
 
         return SUCCESS
 
     @safe_execute
     def load_single(
-        self, data: dict, collection_name: str, session: ClientSession = None
+        self,
+        data: dict,
+        collection_name: str,
+        session: ClientSession = None,
+        ordered=False,
     ) -> ExitCode:
         if not data:
             raise Exception(f"Data to load not provided.")
-        self.db[collection_name].insert_one(data, session=session)
+        self.db[collection_name].insert_one(data, session=session, ordered=ordered)
         return SUCCESS
 
     @safe_execute
     def load_multiple(
-        self, data: list[dict], collection_name: str, session: ClientSession = None
+        self,
+        data: list[dict],
+        collection_name: str,
+        session: ClientSession = None,
+        ordered=False,
     ) -> ExitCode:
         if not data:
             raise Exception(f"Data to load not provided.")
-        self.db[collection_name].insert_many(data, session=session)
+        self.db[collection_name].insert_many(data, session=session, ordered=ordered)
         return SUCCESS

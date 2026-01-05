@@ -3,11 +3,13 @@
 - To run (Linux):
 
 > ---------- < Transient Server Running > ----------
-2. `(Start python venv however you prefer)`
+1. `(Start python venv however you prefer)`
+2. `docker compose -f compose.datawarehouse.yaml up -d`
 3. `(venv) .../tests/Start_Transient_Extract_Load> python test.py`
 > ... logs
 > 
 > ---------- < Persisted successfully N/N rows > ----------
+4. `docker compose -f compose.datawarehouse.yaml down -v`
 
 - PgAdmin connexion:
 

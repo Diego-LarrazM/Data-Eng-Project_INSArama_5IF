@@ -2,20 +2,42 @@ name: insarama
 
 include:
   # Data Piepeline Orchestrator
-  - path: Airflow/compose.airflow.yaml
-    project_directory: Airflow/
-    env_file: Airflow/.env
+  - path: ${PWD}/Airflow/compose.airflow.yaml
+    project_directory: ${PWD}/Airflow/
+    env_file: ${PWD}/Airflow/.env
   # Data Warehouse
-  - path: DataWarehouse/compose.datawarehouse.yaml
-    project_directory: DataWarehouse/
-    env_file: DataWarehouse/.env
+  - path: ${PWD}/DataWarehouse/compose.datawarehouse.yaml
+    project_directory: ${PWD}/DataWarehouse/
+    env_file: ${PWD}/DataWarehouse/.env
   # Dashboards
-  - path: Grafana/compose.grafana.yaml
-    project_directory: Grafana/
-    env_file: Grafana/.env
+  - path: ${PWD}/Grafana/compose.grafana.yaml
+    project_directory: ${PWD}/Grafana/
+    env_file: ${PWD}/Grafana/.env
 
+volumes: # Volume containing source data for ingestion : Scrapped metacritic data and IMDB data
+  INSARAMA_SOURCE_DATA:
+    name: insarama_source_data
+    driver: local
+    driver_opts:
+      device: ${PWD}/Airflow/data
+      type: none
+      o: bind
+  INSARAMA_REVIEWS_DATAWAREHOUSE_DATA:
+    name: insarama_reviews_datawarehouse_data
+    driver: local
+    driver_opts:
+      device: ${PWD}/DataWarehouse/data
+      type: none
+      o: bind
+  INSARAMA_DOCKERETL_IMAGES:
+    name: insarama_dockerETL_images
+    driver: local
+    driver_opts:
+      type: none
+      device: ${PWD}/DockerETL_Images
+      o: bind
 networks:
   INSARAMA_NET:
     name: insarama_net
-    driver: bridge  # simple isolation for usecase
+    driver: bridge # simple isolation for usecase
     external: false # enables docker compose down to remove named net
