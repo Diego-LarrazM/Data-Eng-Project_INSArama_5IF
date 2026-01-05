@@ -3,7 +3,8 @@ from urllib.parse import quote_plus
 from pathlib import Path
 import json
 
-from utils.mongo_loader import MongoLoader
+from utils import MongoLoader
+from utils.logger import LOG
 from utils.media_utils import *
 from media_builder import MediaBuilder
 
@@ -63,7 +64,7 @@ def setup_metacritic_data():
         if not cat_dir.is_dir():
             continue
 
-        print(f"[ Loading media data from: <{cat_dir.name}>... ]")
+        LOG.info(f"[ Loading media data from: <{cat_dir.name}>... ]")
 
         media_type = "Movie"
         section_type = "Display"
@@ -111,38 +112,38 @@ def setup_metacritic_data():
             )
 
     # Remapping
-    print(f"[ Remapping Metacritic Data ]")
+    LOG.info(f"[ Remapping Metacritic Data ]")
     genre_rows = MediaMappingUtils.remap_foreign_keys_and_build_distinct_rows(
         media_rows, genre_connection, "genre_id"
     )
     del genre_connection
-    print("-> Mapped Genres")
+    LOG.info("-> Mapped Genres")
 
     company_rows = MediaMappingUtils.remap_foreign_keys_and_build_distinct_rows(
         media_rows, company_connection, "company_id"
     )
     del company_connection
-    print("-> Mapped Companies")
+    LOG.info("-> Mapped Companies")
 
     time_rows = MediaMappingUtils.remap_foreign_keys_and_build_distinct_rows(
         review_rows, time_connection, "time_id", null_check_collums=["year"]
     )
     del time_connection
-    print("-> Mapped Timestamps")
+    LOG.info("-> Mapped Timestamps")
 
     reviewer_rows = MediaMappingUtils.remap_foreign_keys_and_build_distinct_rows(
         review_rows, reviewer_connection, "reviewer_id"
     )
     del reviewer_connection
-    print("-> Mapped Reviewers")
+    LOG.info("-> Mapped Reviewers")
 
     section_rows = MediaMappingUtils.remap_foreign_keys_and_build_distinct_rows(
         review_rows, section_connection, "section_id"
     )
     del section_connection
-    print("-> Mapped Sections")
+    LOG.info("-> Mapped Sections")
 
-    print("[ Saving to CSV... ]")
+    LOG.info("[ Saving to CSV... ]")
     MediaBuilder.build_and_save_dataframe_from_rows(
         genre_rows, OUTPUT_DIR / "GENRES.csv"
     )
@@ -154,7 +155,9 @@ def setup_metacritic_data():
     del company_rows
 
     reviews_df = MediaBuilder.build_and_save_dataframe_from_rows(
-        review_rows, is_dict=True
+        review_rows,
+        is_dict=True,
+        id_attribute_names=["time_id", "section_id", "reviewer_id", "media_info_id"],
     )
     del review_rows
     reviews_df = reviews_df.dropna(subset=["rating"])
@@ -171,7 +174,7 @@ def setup_metacritic_data():
     )
     del reviewer_rows
 
-    print("[ Extracting Franchise for Sections ... ]")
+    LOG.info("[ Extracting Franchise for Sections ... ]")
     section_df = MediaBuilder.build_and_save_dataframe_from_rows(section_rows)
     del section_rows
     section_df = MediaTokenUtils.cluster_attribute_jaccard(
@@ -183,7 +186,7 @@ def setup_metacritic_data():
     )
     section_df.to_csv(OUTPUT_DIR / "DIM_SECTION.csv", sep="|", encoding="utf-8")
 
-    print("< Finished with Metacritic >")
+    LOG.info("< Finished with Metacritic >")
 
     return media_rows, title_year_set
 
@@ -213,7 +216,7 @@ def setup_and_join_imdb_data_for_roles(media_rows, title_year_set):
 
 
 def setup_bridges(media_rows):
-    print(f"[ Setting up Bridge Tables... ]")
+    LOG.info(f"[ Setting up Bridge Tables... ]")
     # Build bridge tables for media_info
     bridge_dfs_media_info = MediaBuilder.build_bridge_rows(
         media_rows, ["genre_id", "company_id", "role_id"], "media_id"
@@ -251,7 +254,7 @@ if __name__ == "__main__":
     setup_bridges(media_rows)
 
     # DataFrames and CSVs
-    print(f"[ Extracting Franchises... ]")
+    LOG.info(f"[ Extracting Franchises... ]")
     media_df = MediaBuilder.build_and_save_dataframe_from_rows(media_rows, is_dict=True)
     media_df = MediaTokenUtils.cluster_attribute_jaccard(
         media_df, "primary_title", "franchise", type_attribute="media_type"
@@ -259,11 +262,11 @@ if __name__ == "__main__":
     media_df.to_csv(OUTPUT_DIR / "DIM_MEDIA_INFO.csv", sep="|", encoding="utf-8")
 
     # Load to transient database (MongoDB)
-    print(f"[ Loading transformed data to transient MongoDB at: <{mongo_url}>... ]")
+    LOG.info(f"[ Loading transformed data to transient MongoDB at: <{mongo_url}>... ]")
     loader = MongoLoader(mongo_conn_url=mongo_url, database=MONGO_DB)
 
     for collection in COLLECTIONS:
-        print(f"Loading collection: {collection}...")
+        LOG.info(f"Loading collection: {collection}...")
         if loader.load_from_csv(
             OUTPUT_DIR / f"{collection}.csv",
             collection,
@@ -272,4 +275,4 @@ if __name__ == "__main__":
         ):
             raise Exception(f"Failed to load collection: {collection}!")
 
-    print("All collections loaded successfully!")
+    LOG.info("All collections loaded successfully!")

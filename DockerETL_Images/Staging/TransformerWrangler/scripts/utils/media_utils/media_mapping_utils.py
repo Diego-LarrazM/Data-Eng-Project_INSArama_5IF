@@ -1,4 +1,5 @@
 import uuid
+from utils.logger import LOG
 
 
 class MediaMappingUtils:
@@ -77,7 +78,7 @@ class MediaMappingUtils:
                 # If already assigned and indeed a better match
                 if target_id in best_found:
                     old_tconst = best_found[target_id]["associated"]
-                    print(
+                    LOG.info(
                         f"Deleting previous assignment: {row.target_title} -> {best_found[target_id]["titleIMDB"]} ({best_found[target_id]["similarity"]})"
                     )
                     matches_c -= 1
@@ -91,7 +92,7 @@ class MediaMappingUtils:
                         continue  # skip, this match is worse than existing
                     else:
                         # remove old worse assignment
-                        print(
+                        LOG.info(
                             f"Deleting previous assignment: {row.primaryTitle} was assigned to "
                             f"{old_target}  with similarity {old_similarity}"
                         )
@@ -106,7 +107,7 @@ class MediaMappingUtils:
                 }
                 result[tconst] = target_id
                 matches_c += 1
-                print(
+                LOG.info(
                     f"New King of the Hill: {row.target_title} -> {row.primaryTitle} ({similarity})"
                 )
         return matches_c

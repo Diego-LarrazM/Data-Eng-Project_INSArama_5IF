@@ -2,6 +2,7 @@ from pathlib import Path
 import pandas as pd
 import uuid
 
+from utils.logger import LOG
 from utils.media_utils import *
 
 
@@ -142,10 +143,10 @@ class MediaBuilder:
         media_rows: dict,
         title_basics_path: Path,
         title_year_set: set,
-        chunksize: int = 2_000_000,
+        chunksize: int = 4_000_000,
     ) -> dict:
 
-        print(f"[ IMDb: Starting Join: finding common titles to join roles ... ]")
+        LOG.info(f"[ IMDb: Starting Join: finding common titles to join roles ... ]")
         result = {}
         best_similarity_found = {}
         targets_df = MediaBuilder.build_media_targets(media_rows)
@@ -176,14 +177,14 @@ class MediaBuilder:
             chunk_df = MediaCleaningUtils.IMDB_acceptable_filter(
                 chunk_df, year_to_title=title_year_set
             )
-            print(f"CLEANED : {chunksize - chunk_df.shape[0]}")
+            LOG.info(f"CLEANED : {chunksize - chunk_df.shape[0]}")
 
             # --> Filter by year
             candidates = MediaCleaningUtils.filter_year_equivalent_candidates(
                 chunk_df, targets_df
             )
             if candidates.empty:
-                print(f"None found in same year")
+                LOG.info(f"None found in same year")
                 continue
 
             # --> Filter by runtime
@@ -191,7 +192,7 @@ class MediaBuilder:
                 candidates
             )
             if candidates.empty:
-                print(f"None found for same runtime")
+                LOG.info(f"None found for same runtime")
                 continue
 
             # Matching Titles
@@ -213,24 +214,24 @@ class MediaBuilder:
                 candidates, result, best_similarity_found
             )
             total_matched += matches
-            print(f"MATCHES : {matches} - total : {total_matched}/{len(media_rows)}")
-            print(f"Scanned {chunk_idx * chunksize:,} IMDb rows...")
+            LOG.info(f"MATCHES : {matches} - total : {total_matched}/{len(media_rows)}")
+            LOG.info(f"Scanned {chunk_idx * chunksize:,} IMDb rows...")
 
         return result
 
     def build_roles_for_media(
         imdb_matches: dict,
         imdb_dir: Path,
-        chunksize: int = 2_000_000,
+        chunksize: int = 4_000_000,
     ) -> pd.DataFrame:
-        print("\n[ IMDb: Extracting roles for media ]")
+        LOG.info("\n[ IMDb: Extracting roles for media ]")
 
         role_connection = {}
         required_nconsts = set()
 
         principals_path = imdb_dir / "title.principals.tsv.gz"
 
-        print("[IMDb] Scanning title.principals.tsv.gz")
+        LOG.info("[IMDb] Scanning title.principals.tsv.gz")
 
         for chunk_idx, chunk in enumerate(
             pd.read_csv(
@@ -273,12 +274,12 @@ class MediaBuilder:
                 )
                 required_nconsts.add(row.nconst)
 
-            print(f"Scanned {chunk_idx * chunksize:,} IMDb CHARACTERS rows...")
+            LOG.info(f"Scanned {chunk_idx * chunksize:,} IMDb CHARACTERS rows...")
 
         nconst_to_name = {}
         names_path = imdb_dir / "name.basics.tsv.gz"
 
-        print("[IMDb] Scanning name.basics.tsv.gz")
+        LOG.info("[IMDb] Scanning name.basics.tsv.gz")
 
         for chunk_idx, chunk in enumerate(
             pd.read_csv(
@@ -299,7 +300,7 @@ class MediaBuilder:
             for row in chunk.itertuples(index=False):
                 nconst_to_name[row.nconst] = row.primaryName
 
-            print(f"Scanned {chunk_idx * chunksize:,} IMDb NAMES rows...")
+            LOG.info(f"Scanned {chunk_idx * chunksize:,} IMDb NAMES rows...")
 
             for role_attributes in role_connection.values():
                 primary_name = nconst_to_name.get(role_attributes["nconst"])
@@ -307,7 +308,7 @@ class MediaBuilder:
                     continue
                 role_attributes["person_name"] = primary_name
 
-        print("< [IMDb] Finished joinning roles >")
+        LOG.info("< [IMDb] Finished joinning roles >")
         return role_connection
 
     ##################################################################
@@ -333,7 +334,7 @@ class MediaBuilder:
         rows,
         output_file_dir=None,
         separator="|",
-        id_attribute_names=["id"],
+        id_attribute_names=None,
         is_dict=False,
     ):
         if is_dict:
@@ -342,12 +343,16 @@ class MediaBuilder:
             #     idrow2: {"colA": valA2, "colB": valB2},
             # }
             df = pd.DataFrame.from_dict(rows, orient="index")
-            df.index.names = id_attribute_names
+            df.index.name = "id"
+            if id_attribute_names:
+                df = df.set_index(id_attribute_names, drop=True)
         else:
             # rows = [
             #     {"id": 101, "age": 30, "score": 88},
             #     {"id": 102, "age": 25, "score": 92},
             # ]
+            if not id_attribute_names:
+                id_attribute_names = ["id"]
             df = pd.DataFrame.from_records(rows, index=id_attribute_names)
         if output_file_dir:
             df.to_csv(output_file_dir, sep=separator, encoding="utf-8")

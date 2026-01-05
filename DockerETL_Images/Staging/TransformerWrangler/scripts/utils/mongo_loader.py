@@ -72,6 +72,7 @@ class MongoLoader:
         filter_columns: list[str] = None,
         filter_values_list: list[dict] = None,
         batch_size: int = 1000,
+        ordered=False,
     ) -> ExitCode:
 
         if not os.path.exists(file_path):
@@ -91,13 +92,13 @@ class MongoLoader:
             )
 
             for batch in batch_gen:
-                collection.insert_many(batch, session=session)
+                collection.insert_many(batch, session=session, ordered=ordered)
 
         return SUCCESS
 
     @safe_execute
     def load_from_json(
-        self, file_path: str, session: ClientSession = None
+        self, file_path: str, session: ClientSession = None, ordered=False
     ) -> ExitCode:  # Does not accept decimals, must be stringyfied
         if not os.path.exists(file_path):
             raise Exception(f"File {file_path} does not exist.")
@@ -107,24 +108,32 @@ class MongoLoader:
             for collection_name, documents in ijson.kvitems(file, ""):  # "" is root
                 collection = self.db[collection_name]
                 for document in documents:
-                    collection.insert_one(document, session=session)
+                    collection.insert_one(document, session=session, ordered=ordered)
 
         return SUCCESS
 
     @safe_execute
     def load_single(
-        self, data: dict, collection_name: str, session: ClientSession = None
+        self,
+        data: dict,
+        collection_name: str,
+        session: ClientSession = None,
+        ordered=False,
     ) -> ExitCode:
         if not data:
             raise Exception(f"Data to load not provided.")
-        self.db[collection_name].insert_one(data, session=session)
+        self.db[collection_name].insert_one(data, session=session, ordered=ordered)
         return SUCCESS
 
     @safe_execute
     def load_multiple(
-        self, data: list[dict], collection_name: str, session: ClientSession = None
+        self,
+        data: list[dict],
+        collection_name: str,
+        session: ClientSession = None,
+        ordered=False,
     ) -> ExitCode:
         if not data:
             raise Exception(f"Data to load not provided.")
-        self.db[collection_name].insert_many(data, session=session)
+        self.db[collection_name].insert_many(data, session=session, ordered=ordered)
         return SUCCESS
