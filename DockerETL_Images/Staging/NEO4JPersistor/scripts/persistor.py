@@ -4,7 +4,6 @@ from utils.execution import *  # Assurez-vous que SUCCESS/FAILURE sont importés
 import time
 
 
-
 class Persistor:
     # GRAPH_LINKS: [{"_GRAPH_SRC_NODE_ID", "_GRAPH_LINK_LABEL", "_GRAPH_TRGT_NODE_ID", ...}]
     # GRAPH_ENTITIES: [{"_GRAPH_NODE_ID", "_GRAPH_NODE_LABEL", attributes...}]
@@ -84,7 +83,7 @@ class Persistor:
                 attrs = link.get("_GRAPH_LINK_ATTRIBUTES", {})
 
                 props = ", ".join(f"{k}: ${k}" for k in attrs.keys())
-                
+
                 cypher = f"""
                 MATCH (a:{src_label} {{_GRAPH_NODE_ID: $src_id}})
                 MATCH (b:{tgt_label} {{_GRAPH_NODE_ID: $tgt_id}})

@@ -241,7 +241,7 @@ with DAG(
                 "MONGO_HEALTHCHECK_RETRIES": os.getenv("MONGO_HEALTHCHECK_RETRIES"),
                 "INSARAMA_NET": os.getenv("INSARAMA_NET"),
             },
-            trigger_rule=TriggerRule.ALL_DONE
+            trigger_rule=TriggerRule.ALL_DONE,
         )
 
         run_tf_wrangler >> [postgres_loader, neo4j_loader] >> stop_mongo_server
