@@ -20,10 +20,11 @@ if R_USERNAME and R_PASSWORD:
 MONGO_URL = f"mongodb://{credentials}{R_HOST}:{R_PORT}{auth_source}"
 
 # Write
-DW_NEO_DB = os.environ.get("DW_NEO_DB", "Insarama_Graph")
+DW_NEO_DB = "neo4j"
 DW_NEO_HOST = os.environ.get("DW_NEO_HOST")
 DW_NEO_PORT = 7687  # Hardcoded
-DW_NEO_DB_URL = f"bolt://{os.environ.get('DW_NEO_USER')}:{os.environ.get('DW_NEO_PASSWORD')}@{DW_NEO_HOST}:{DW_NEO_PORT}"
+DW_NEO_DB_URL = f"bolt://{DW_NEO_HOST}:{DW_NEO_PORT}"
+DW_NEO_AUTH = None
 
 DW_NEO_LOAD_BATCH_SIZE = int(os.environ.get("DW_NEO_LOAD_BATCH_SIZE", 100))
 
@@ -38,7 +39,7 @@ if __name__ == "__main__":
 
     print(f"[ Connecting to (NEO4J): <{DW_NEO_DB_URL}>... ]")
 
-    persistor = Persistor(uri=DW_NEO_DB_URL, database=DW_NEO_DB)
+    persistor = Persistor(uri=DW_NEO_DB_URL, auth=DW_NEO_AUTH,  database=DW_NEO_DB)
 
     print(f"[ Loading to DataWarehouse ]")
     print(f"src   : <{MONGO_URL}>")

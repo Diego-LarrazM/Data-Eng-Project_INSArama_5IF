@@ -27,14 +27,14 @@ volumes: # Volume containing source data for ingestion : Scrapped metacritic dat
       type: none
       o: bind
   INSARAMA_POSTGRES_DW_DATA:
-    name: insarama_reviews_datawarehouse_data
+    name: insarama_reviews_dw_data
     driver: local
     driver_opts:
       device: ${PWD}/DataWarehouse/data/postgres
       type: none
       o: bind
   INSARAMA_NEO_DW_DATA:
-    name: insarama_reviews_datawarehouse_data
+    name: insarama_graph_dw_data
     driver: local
     driver_opts:
       device: ${PWD}/DataWarehouse/data/neo4j

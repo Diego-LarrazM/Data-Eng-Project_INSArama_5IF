@@ -10,6 +10,7 @@ from airflow import DAG
 from airflow.utils.task_group import TaskGroup
 from airflow.providers.docker.operators.docker import DockerOperator
 from airflow.providers.standard.operators.bash import BashOperator
+from airflow.utils.trigger_rule import TriggerRule
 
 load_dotenv("/opt/airflow/.env")
 
@@ -224,9 +225,6 @@ with DAG(
                 "MONGO_DB": os.getenv("MONGO_DB"),
                 # Neo4J
                 "DW_NEO_HOST": os.getenv("DW_NEO_HOST"),
-                "DW_NEO_DB": os.getenv("DW_NEO_DB"),
-                "DW_NEO_USER": os.getenv("DW_NEO_USER"),
-                "DW_NEO_PASSWORD": os.getenv("DW_NEO_PASSWORD"),
                 "DW_NEO_LOAD_BATCH_SIZE": os.getenv("DW_NEO_LOAD_BATCH_SIZE"),
             },
         )
@@ -243,6 +241,7 @@ with DAG(
                 "MONGO_HEALTHCHECK_RETRIES": os.getenv("MONGO_HEALTHCHECK_RETRIES"),
                 "INSARAMA_NET": os.getenv("INSARAMA_NET"),
             },
+            trigger_rule=TriggerRule.ALL_DONE
         )
 
         run_tf_wrangler >> [postgres_loader, neo4j_loader] >> stop_mongo_server

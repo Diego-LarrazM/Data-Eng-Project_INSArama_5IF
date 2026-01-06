@@ -39,7 +39,7 @@ services:
         - "${DW_NEO_BOLT_PORT}:7687"
     restart: always
     environment:
-      - NEO4J_AUTH=${DW_NEO_USER}/${DW_NEO_PASSWORD}
+      - NEO4J_AUTH=none
     volumes:
       - INSARAMA_NEO_DW_DATA:/data
     networks:

@@ -143,7 +143,7 @@ class MediaBuilder:
         media_rows: dict,
         title_basics_path: Path,
         title_year_set: set,
-        chunksize: int = 500_000,
+        chunksize: int = 1_000_000,
     ) -> dict:
 
         LOG.info(f"[ IMDb: Starting Join: finding common titles to join roles ... ]")
@@ -222,7 +222,7 @@ class MediaBuilder:
     def build_roles_for_media(
         imdb_matches: dict,
         imdb_dir: Path,
-        chunksize: int = 500_000,
+        chunksize: int = 5_000_000,
     ) -> pd.DataFrame:
         LOG.info("\n[ IMDb: Extracting roles for media ]")
 

@@ -210,7 +210,6 @@ def setup_and_join_imdb_data_for_roles(media_rows, title_year_set, loader: Mongo
     role_rows = MediaMappingUtils.remap_foreign_keys_and_build_distinct_rows(
         media_rows, role_connection, "role_id"
     )
-    del role_connection
 
     role_df = MediaBuilder.build_and_save_dataframe_from_rows(role_rows)
     role_df = role_df.drop(columns=["nconst"])
@@ -218,9 +217,9 @@ def setup_and_join_imdb_data_for_roles(media_rows, title_year_set, loader: Mongo
     loader.load_from_dict(
         role_df.to_dict(orient="index"), "ROLES", batch_size=10000, id_col_name="id"
     )
-    role_rows
+    del role_rows
     del role_df
-    return role_rows
+    return role_connection
 
 
 def setup_bridges(media_rows, loader: MongoLoader):
@@ -255,7 +254,7 @@ if __name__ == "__main__":
         setup_metacritic_data(loader)
     )
 
-    role_rows = setup_and_join_imdb_data_for_roles(media_rows, title_year_set, loader)
+    role_conn = setup_and_join_imdb_data_for_roles(media_rows, title_year_set, loader)
     del title_year_set
 
     setup_bridges(media_rows, loader)
@@ -270,7 +269,6 @@ if __name__ == "__main__":
         "GRAPH_ENTITIES",
         batch_size=10000,
     )
-
     # Genre
     genre_entities, media_genre_links = MediaBuilder.build_graph_links(
         sources_dict=media_rows,
@@ -301,7 +299,7 @@ if __name__ == "__main__":
     # Roles
     role_entities, media_role_links = MediaBuilder.build_graph_links(
         sources_dict=media_rows,
-        targets_con=role_rows,
+        targets_con=role_conn,
         source_id_col="primary_title",
         target_id_col="person_name",
         source_label="Media",
@@ -310,7 +308,7 @@ if __name__ == "__main__":
         link_attribute_targets=["role", "play_method"],
     )
     loader.batch_load_multiple(role_entities, "GRAPH_ENTITIES", batch_size=10000)
-    del role_rows
+    del role_conn
 
     LOG.info(f"[ Loading collection: GRAPH_LINKS... ]")
     loader.batch_load_multiple(media_genre_links, "GRAPH_LINKS", batch_size=10000)
