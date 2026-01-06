@@ -127,6 +127,7 @@ with DAG(
             network_mode=os.getenv("INSARAMA_NET"),
             environment={
                 "DATA_FILE_DIRECTORY": os.getenv("SCRAPPER_DATA_FILE_DIRECTORY"),
+                "NUMBER_OF_MEDIA_TO_SCRAP": os.getenv("NUMBER_OF_MEDIA_TO_SCRAP"),
             },
             mounts=[
                 Mount(

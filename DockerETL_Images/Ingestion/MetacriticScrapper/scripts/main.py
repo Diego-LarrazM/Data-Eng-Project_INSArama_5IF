@@ -3,11 +3,14 @@ import os
 import json
 from metacritic_scrapper import *
 
-DATA_FILE_DIRECTORY = os.environ.get("MONGO_HOST_NAME")
+from utils.logger import LOG
+
+DATA_FILE_DIRECTORY = os.environ.get("DATA_FILE_DIRECTORY")
+NUMBER_OF_MEDIA_TO_SCRAP = int(os.environ.get("NUMBER_OF_MEDIA_TO_SCRAP"))
 
 if __name__ == "__main__":
 
-    print("Starting Metacritic Scrapper...")
+    LOG.info("Starting Metacritic Scrapper...")
 
     def save_game_json(media, output_folder=f"{DATA_FILE_DIRECTORY}/GAMES"):
         os.makedirs(output_folder, exist_ok=True)
@@ -30,7 +33,7 @@ if __name__ == "__main__":
         with open(os.path.join(output_folder, filename), "w", encoding="utf8") as f:
             json.dump(data, f, indent=4, ensure_ascii=False)
 
-        print(f"Saved JSON → {filename}")
+        LOG.info(f"Saved JSON → {filename}")
 
     def save_movie_json(media: MediaInfoPages, output_folder=f"{DATA_FILE_DIRECTORY}/MOVIES"):
         os.makedirs(output_folder, exist_ok=True)
@@ -55,7 +58,7 @@ if __name__ == "__main__":
         with open(filepath, "w", encoding="utf-8") as f:
             json.dump(data, f, indent=4, ensure_ascii=False)
 
-        print(f"Saved JSON: {filepath}")
+        LOG.info(f"Saved JSON: {filepath}")
 
     def save_tv_json(media, output_folder=f"{DATA_FILE_DIRECTORY}/TV_SHOWS"):
         os.makedirs(output_folder, exist_ok=True)
@@ -78,19 +81,18 @@ if __name__ == "__main__":
         with open(os.path.join(output_folder, filename), "w", encoding="utf8") as f:
             json.dump(data, f, indent=4, ensure_ascii=False)
 
-        print(f"Saved JSON → {filename}")
+        LOG.info(f"Saved JSON → {filename}")
 
 
     scr_TV_SHOWS = MetacriticScrapper(
         MetacriticCategory.TV_SHOWS, user_agent={"User-agent": "Mozilla/5.0"}
     )
-    N = 4
     count = 0
     for media in scr_TV_SHOWS:
-        print(f"TV SHOWS {count + 1}: {media.element_pagination_title}")
+        LOG.info(f"\n===  Saving Tv_shows {count+1}===")
         save_tv_json(media)
         count += 1
-        if count >= N:
+        if count >= NUMBER_OF_MEDIA_TO_SCRAP:
             break
 
     scr_GAMES = MetacriticScrapper(
@@ -98,10 +100,10 @@ if __name__ == "__main__":
     )
     count = 0
     for media in scr_GAMES:
-        print(f"GAME {count+1}: {media.element_pagination_title}")
+        LOG.info(f"\n===  Saving game {count+1}===")
         save_game_json(media)
         count += 1
-        if count >= N:
+        if count >= NUMBER_OF_MEDIA_TO_SCRAP:
             break
 
     scr_MOVIES = MetacriticScrapper(
@@ -110,8 +112,8 @@ if __name__ == "__main__":
     )
     count = 0
     for media in scr_MOVIES:
-        print(f"\n=== Saving movie {count+1}: {movie.element_pagination_title} ===")
+        LOG.info(f"\n=== Saving movie {count+1}===")
         save_movie_json(media)
         count += 1
-        if count >= N:
+        if count >= NUMBER_OF_MEDIA_TO_SCRAP:
             break
