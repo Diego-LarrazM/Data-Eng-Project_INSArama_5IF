@@ -10,6 +10,7 @@ from airflow import DAG
 from airflow.utils.task_group import TaskGroup
 from airflow.providers.docker.operators.docker import DockerOperator
 from airflow.providers.standard.operators.bash import BashOperator
+from airflow.utils.trigger_rule import TriggerRule
 
 load_dotenv("/opt/airflow/.env")
 
@@ -47,7 +48,11 @@ with DAG(
             # On construit l'image manuellement et on lui donne le tag attendu par la suite
             bash_command="docker build -t staging/sqlpersistor /opt/airflow/dockerETL_images/Staging/SQLPersistor/",
         )
-
+        build_Neo4Jpersistor_image = BashOperator(
+            task_id="build_Neo4Jpersistor_image",
+            # On construit l'image manuellement et on lui donne le tag attendu par la suite
+            bash_command="docker build -t staging/neo4jpersistor /opt/airflow/dockerETL_images/Staging/NEO4JPersistor/",
+        )
         build_TF_wrangler_image = BashOperator(
             task_id="build_TF_wrangler_image",
             # On construit l'image manuellement et on lui donne le tag attendu par la suite
@@ -74,6 +79,7 @@ with DAG(
                 build_scrapper_image,
                 build_SQLpersistor_image,
                 build_TF_wrangler_image,
+                build_Neo4Jpersistor_image,
             ],
             setup_mongo_server,
         ]
@@ -161,7 +167,6 @@ with DAG(
                 "MONGO_HOST_NAME": os.getenv("MONGO_HOST_NAME"),
                 "MONGO_PORT": os.getenv("MONGO_PORT"),
                 "MONGO_DB": os.getenv("MONGO_DB"),
-                "MONGO_MEDIA_COLLECTION": os.getenv("MONGO_MEDIA_COLLECTION"),
             },
             mounts=[
                 Mount(
@@ -172,7 +177,7 @@ with DAG(
             ],
         )
 
-        # --- Tâche 4 : Persisting to PostgreSQL ---
+        # --- Tâche 4a : Persisting to PostgreSQL ---
 
         postgres_loader = DockerOperator(
             task_id="postgres_loader",
@@ -191,13 +196,36 @@ with DAG(
                 "MONGO_HOST_NAME": os.getenv("MONGO_HOST_NAME"),
                 "MONGO_PORT": os.getenv("MONGO_PORT"),
                 "MONGO_DB": os.getenv("MONGO_DB"),
-                "MONGO_MEDIA_COLLECTION": os.getenv("MONGO_MEDIA_COLLECTION"),
                 # Postgres
                 "DW_POSTGRES_HOST": os.getenv("DW_POSTGRES_HOST"),
                 "DW_POSTGRES_DB": os.getenv("DW_POSTGRES_DB"),
                 "DW_POSTGRES_USER": os.getenv("DW_POSTGRES_USER"),
                 "DW_POSTGRES_PASSWORD": os.getenv("DW_POSTGRES_PASSWORD"),
                 "DW_POSTGRES_LOAD_BATCH_SIZE": os.getenv("DW_POSTGRES_LOAD_BATCH_SIZE"),
+            },
+        )
+
+        # --- Tâche 4b : Persisting to Neo4J ---
+        neo4j_loader = DockerOperator(
+            task_id="neo4j_loader",
+            container_name="Neo4JPersistor",
+            image="staging/neo4jpersistor",
+            api_version="auto",
+            auto_remove=True,
+            command="sh -c '/app/scripts/start.sh'",
+            docker_url="unix://var/run/docker.sock",
+            network_mode=os.getenv("INSARAMA_NET"),
+            force_pull=False,
+            environment={
+                # Mongo
+                "MONGO_USERNAME": os.getenv("MONGO_USERNAME"),
+                "MONGO_PASSWORD": os.getenv("MONGO_PASSWORD"),
+                "MONGO_HOST_NAME": os.getenv("MONGO_HOST_NAME"),
+                "MONGO_PORT": os.getenv("MONGO_PORT"),
+                "MONGO_DB": os.getenv("MONGO_DB"),
+                # Neo4J
+                "DW_NEO_HOST": os.getenv("DW_NEO_HOST"),
+                "DW_NEO_LOAD_BATCH_SIZE": os.getenv("DW_NEO_LOAD_BATCH_SIZE"),
             },
         )
 
@@ -213,8 +241,9 @@ with DAG(
                 "MONGO_HEALTHCHECK_RETRIES": os.getenv("MONGO_HEALTHCHECK_RETRIES"),
                 "INSARAMA_NET": os.getenv("INSARAMA_NET"),
             },
+            trigger_rule=TriggerRule.ALL_DONE,
         )
 
-        run_tf_wrangler >> postgres_loader >> stop_mongo_server
+        run_tf_wrangler >> [postgres_loader, neo4j_loader] >> stop_mongo_server
 
     DockerSetup >> Ingestion_Group >> Staging_Group

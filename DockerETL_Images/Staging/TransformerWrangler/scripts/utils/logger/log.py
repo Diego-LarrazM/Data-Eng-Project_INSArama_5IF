@@ -1,4 +1,10 @@
 import logging
+import sys
 
-logging.basicConfig(level=logging.INFO, format="%(message)s")
 LOG = logging.getLogger("TF-W")
+LOG.setLevel(logging.INFO)
+
+# Only add handler if none exists (prevents double logging)
+if not LOG.handlers:
+    handler = logging.StreamHandler(sys.stdout)  # Airflow captures stdout
+    LOG.addHandler(handler)

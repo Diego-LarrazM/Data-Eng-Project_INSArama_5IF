@@ -77,6 +77,11 @@ if __name__ == "__main__":
             ):
                 persistor.persist_all(batch, session=session)
 
-            print(f"<-- Loaded {collection_name} Data -->\n")
+            if not persistor.last_execution_status:
+                print(f"<-- Loaded {collection_name} Data -->\n")
+            else:
+                print(f"<-- Failed to load {collection_name} Data -->\n")
 
-    print(f"\n<-- Transaction status: {persistor.last_execution_status} -->")
+    print(
+        f"\n<-- Transaction status: {"FAILURE" if persistor.last_execution_status else "SUCCESS"} -->"
+    )
