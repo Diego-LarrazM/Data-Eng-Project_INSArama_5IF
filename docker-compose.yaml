@@ -4,9 +4,7 @@ include:
   # Data Piepeline Orchestrator
   - path: ${PWD}/Airflow/compose.airflow.yaml
     project_directory: ${PWD}/Airflow/
-    env_file: 
-      - ${PWD}/Airflow/.env
-      - ${PWD}/DataWarehouse/.env
+    env_file: ${PWD}/Airflow/.env
   # Data Warehouse
   - path: ${PWD}/DataWarehouse/compose.datawarehouse.yaml
     project_directory: ${PWD}/DataWarehouse/
