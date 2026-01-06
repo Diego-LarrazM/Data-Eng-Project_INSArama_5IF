@@ -9,7 +9,7 @@ from utils.media_utils import *
 class MediaBuilder:
 
     ##################################################################
-    # ------< Metacritic >---------------------- ---------------------#
+    # ------< Metacritic >------------------------------------------ #
     ##################################################################
 
     def build_mediainfo_rows(data, media_type, year_to_titles):
@@ -110,7 +110,7 @@ class MediaBuilder:
         return review_rows, time_rows, reviewer_rows, section_rows
 
     ##################################################################
-    # ---------< IMDB >-----------------------------------------------#
+    # ---------< IMDB >--------------------------------------------- #
     ##################################################################
 
     def build_media_targets(media_rows, year_interval=1):
@@ -312,7 +312,7 @@ class MediaBuilder:
         return role_connection
 
     ##################################################################
-    # ---------< Generic >--------------------------------------------#
+    # ---------< Generic >------------------------------------------ #
     ##################################################################
 
     def build_bridge_rows(main_rows, foreign_key_titles, main_title):
@@ -357,3 +357,53 @@ class MediaBuilder:
         if output_file_dir:
             df.to_csv(output_file_dir, sep=separator, encoding="utf-8")
         return df
+
+    ##################################################################
+    # ------< Neo4J >----------------------------------------------- #
+    ##################################################################
+    def build_graph_entities(entity_dict, entity_id_col, entity_label):
+        # graph_entitity: {"_GRAPH_NODE_ID", "_GRAPH_NODE_TYPE", attributes...}
+        graph_entitites = []
+        for row in entity_dict.values():
+            graph_entity = row.copy()
+            graph_entity["_GRAPH_NODE_ID"] = graph_entity.pop(entity_id_col)
+            graph_entity["_GRAPH_NODE_LABEL"] = entity_label
+            graph_entitites.append(graph_entity)
+        return graph_entitites
+
+    def build_graph_links(
+        sources_dict,
+        targets_con,
+        source_id_col,
+        target_id_col,
+        source_label,
+        target_label,
+        link_label,
+        link_attribute_targets=[],
+    ):  # (Keanu)-[:ACTED_IN {roles:['Neo']}]->(TheMatrix)
+        # graph_link : {"_GRAPH_SRC_NODE_ID", "_GRAPH_LINK_LABEL", "_GRAPH_TRGT_NODE_ID", _GRAPH_SRC_LABEL, _GRAPH_TRGT_LABEL, "_GRAPH_LINK_ATTRIBUTES": {...}}
+        graph_links = []
+        target_entitites = []
+        for target in targets_con.values():
+            # Target entity
+            graph_entity = target.copy()
+            del graph_entity["refs"]
+            graph_entity["_GRAPH_NODE_ID"] = graph_entity.pop(target_id_col)
+            graph_entity["_GRAPH_NODE_LABEL"] = target_label
+            # Link Attributes
+            target_link = {"_GRAPH_LINK_ATTRIBUTES": {}}
+            for att in link_attribute_targets:
+                target_link["_GRAPH_LINK_ATTRIBUTES"][att] = graph_entity.pop(att)
+            target_entitites.append(graph_entity)
+            # Source -> Target link
+            for ref_id in target["refs"]:
+                source = sources_dict[ref_id]
+                graph_link = target_link.copy()
+                # Link Form
+                graph_link["_GRAPH_LINK_LABEL"] = link_label
+                graph_link["_GRAPH_SRC_NODE_ID"] = source[source_id_col]
+                graph_link["_GRAPH_TRGT_NODE_ID"] = graph_entity["_GRAPH_NODE_ID"]
+                graph_link["_GRAPH_SRC_LABEL"] = source_label
+                graph_link["_GRAPH_TRGT_LABEL"] = target_label
+                graph_links.append(graph_link)
+        return target_entitites, graph_links

@@ -171,3 +171,23 @@ class MongoLoader:
             raise Exception(f"Data to load not provided.")
         self.db[collection_name].insert_many(data, session=session, ordered=ordered)
         return SUCCESS
+
+    @safe_execute
+    def batch_load_multiple(
+        self,
+        data: list[dict],
+        collection_name: str,
+        batch_size: int = 1000,
+        session: ClientSession = None,
+        ordered=False,
+    ):
+        if not data:
+            raise Exception(f"Data to load not provided.")
+
+        for batch in BatchGenerator(
+            generator=data, batch_size=batch_size, filter_func=None
+        ):
+            self.db[collection_name].insert_many(
+                batch, session=session, ordered=ordered
+            )
+        return SUCCESS

@@ -30,22 +30,10 @@ class MediaMappingUtils:
             )
 
     def remap_foreign_keys_and_build_distinct_rows(
-        main_rows,
-        distinct_value_set,
-        foreign_key_attribute,
-        # null_check_collums=[],
-        # value_map=None,
+        main_rows, distinct_value_set, foreign_key_attribute
     ):
         distinct_rows = []
         for distinct_row in distinct_value_set.values():
-            # valid_row = True
-            # for col in null_check_collums:
-            #     valid_row = distinct_row[col] is not None
-            #     if not valid_row:
-            #         break
-            # if not valid_row:
-            #     continue
-
             for ref_id in distinct_row["refs"]:
                 foreign_key = distinct_row["id"]
 
