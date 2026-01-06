@@ -2,7 +2,7 @@ import requests
 import re
 
 from metacritic_api_handler import MetacriticReviewAPIHandler
-from models import MediaInfoPages
+from media_info_pages import MediaInfoPages
 from utils import MetacriticCategory
 from bs4 import BeautifulSoup
 

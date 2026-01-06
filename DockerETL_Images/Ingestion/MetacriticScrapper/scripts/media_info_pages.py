@@ -1,5 +1,5 @@
 from bs4 import BeautifulSoup
-from models import MetacriticReview
+from metacritic_review import MetacriticReview
 from attr import dataclass
 
 
