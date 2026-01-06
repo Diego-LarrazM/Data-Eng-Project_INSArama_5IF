@@ -33,13 +33,12 @@ class MediaMappingUtils:
         main_rows, distinct_value_set, foreign_key_attribute
     ):
         distinct_rows = []
-        for distinct_row in distinct_value_set.values():
+        for connection_row in distinct_value_set.values():
+            distinct_row = connection_row.copy()
             for ref_id in distinct_row["refs"]:
                 foreign_key = distinct_row["id"]
-
                 if main_rows[ref_id][foreign_key_attribute] is None:
                     main_rows[ref_id][foreign_key_attribute] = foreign_key
-                # elif valid_row:
                 else:
                     main_rows[ref_id][foreign_key_attribute].append(foreign_key)
             del distinct_row["refs"]

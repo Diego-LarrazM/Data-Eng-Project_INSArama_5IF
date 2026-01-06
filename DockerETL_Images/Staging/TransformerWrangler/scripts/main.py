@@ -277,6 +277,7 @@ if __name__ == "__main__":
         targets_con=genre_conn,
         source_id_col="primary_title",
         target_id_col="genre_title",
+        source_label="Media",
         target_label="Genre",
         link_label="has_genre",
     )
@@ -289,6 +290,7 @@ if __name__ == "__main__":
         targets_con=company_conn,
         source_id_col="primary_title",
         target_id_col="company_name",
+        source_label="Media",
         target_label="Company",
         link_label="associated_with",
         link_attribute_targets=["company_role"],
@@ -302,6 +304,7 @@ if __name__ == "__main__":
         targets_con=role_rows,
         source_id_col="primary_title",
         target_id_col="person_name",
+        source_label="Media",
         target_label="Cast",
         link_label="has_cast",
         link_attribute_targets=["role", "play_method"],

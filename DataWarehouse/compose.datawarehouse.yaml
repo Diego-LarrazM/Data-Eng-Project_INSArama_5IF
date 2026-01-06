@@ -35,11 +35,11 @@ services:
     image: neo4j
     container_name: ${DW_NEO_HOST}
     ports:
-        - "${NEO_UI_PORT}:7474"
-        - "${NEO_BOLT_PORT}:7687"
+        - "${DW_NEO_UI_PORT}:7474"
+        - "${DW_NEO_BOLT_PORT}:7687"
     restart: always
     environment:
-      - NEO4J_AUTH: ${DW_NEO_USER}/${DW_NEO_PASSWORD}
+      - NEO4J_AUTH=${DW_NEO_USER}/${DW_NEO_PASSWORD}
     volumes:
       - INSARAMA_NEO_DW_DATA:/data
     networks:

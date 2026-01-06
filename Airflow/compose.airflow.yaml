@@ -50,7 +50,8 @@ x-airflow-common: &airflow-common
   # and uncomment the "build" line below, Then run `docker-compose build` to build the images.
   # image: ${AIRFLOW_IMAGE_NAME:-apache/airflow:3.1.0}
   build: .
-  environment: &airflow-common-env # For Mongo Transient Storage Container
+  environment: &airflow-common-env 
+    # For Mongo Transient Storage Container
     MONGO_USERNAME: ${MONGO_USERNAME}
     MONGO_PASSWORD: ${MONGO_PASSWORD}
     MONGO_HOST_NAME: ${MONGO_HOST_NAME}
@@ -58,7 +59,21 @@ x-airflow-common: &airflow-common
     MONGO_DB: ${MONGO_DB}
     MONGO_RSET_NAME: ${MONGO_RSET_NAME}
     MONGO_HEALTHCHECK_RETRIES: ${MONGO_HEALTHCHECK_RETRIES}
-    MONGO_MEDIA_COLLECTION: ${MONGO_MEDIA_COLLECTION}
+    # -- Postgres Configuration (Star Schema) --------------------------------
+    DW_POSTGRES_HOST: ${DW_POSTGRES_HOST}
+    DW_POSTGRES_DB: ${DW_POSTGRES_DB}
+    DW_POSTGRES_USER: ${DW_POSTGRES_USER}
+    DW_POSTGRES_PASSWORD: ${DW_POSTGRES_PASSWORD}
+    DW_POSTGRES_LOAD_BATCH_SIZE: ${DW_POSTGRES_LOAD_BATCH_SIZE}
+    DW_POSTGRES_COM_PORT: ${DW_POSTGRES_COM_PORT}
+    # -- Neo4J Configuration (Graph) --------------------------------
+    DW_NEO_USER: ${DW_NEO_USER}
+    DW_NEO_PASSWORD: ${DW_NEO_PASSWORD}
+    DW_NEO_HOST: ${DW_NEO_HOST}
+    DW_NEO_UI_PORT: ${DW_NEO_UI_PORT}
+    DW_NEO_BOLT_PORT: ${DW_NEO_BOLT_PORT}
+    DW_NEO_LOAD_BATCH_SIZE: ${DW_NEO_LOAD_BATCH_SIZE}
+    DW_NEO_DB: ${DW_NEO_DB}
     # For Airflow
     AIRFLOW__CORE__EXECUTOR: airflow.providers.celery.executors.celery_executor.CeleryExecutor
     AIRFLOW__CORE__AUTH_MANAGER: airflow.providers.fab.auth_manager.fab_auth_manager.FabAuthManager
