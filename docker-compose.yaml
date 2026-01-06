@@ -12,7 +12,9 @@ include:
   # Dashboards
   - path: ${PWD}/Grafana/compose.grafana.yaml
     project_directory: ${PWD}/Grafana/
-    env_file: ${PWD}/Grafana/.env
+    env_file: 
+      - ${PWD}/Grafana/.env
+      - ${PWD}/DataWarehouse/.env
 
 volumes: # Volume containing source data for ingestion : Scrapped metacritic data and IMDB data
   INSARAMA_SOURCE_DATA:

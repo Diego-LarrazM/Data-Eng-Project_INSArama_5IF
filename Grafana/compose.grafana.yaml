@@ -1,11 +1,18 @@
 services:
-  grafana: # MUST MATCH DW_POSTGRES_HOST in .env
+  grafana:
     image: grafana/grafana
     container_name: ${GF_CONTAINER_NAME}
     environment:
+      # Grafana auth
       - GF_SECURITY_ADMIN_USER=${GF_USER}
       - GF_SECURITY_ADMIN_PASSWORD=${GF_PASSWORD}
       - GF_PATHS_PROVISIONING=/etc/grafana/provisioning
+      # Postgres Database connection
+      - DW_POSTGRES_HOST=${DW_POSTGRES_HOST}
+      - DW_POSTGRES_DB=${DW_POSTGRES_DB}
+      - DW_POSTGRES_USER=${DW_POSTGRES_USER}
+      - DW_POSTGRES_PASSWORD=${DW_POSTGRES_PASSWORD}
+
       # Using Postgres as Grafana DB backend
       # GF_DATABASE_TYPE: postgres
       # GF_DATABASE_HOST: ${DW_POSTGRES_HOST}:5432
@@ -13,8 +20,8 @@ services:
       # GF_DATABASE_USER: ${DW_POSTGRES_USER}
       # GF_DATABASE_PASSWORD: ${DW_POSTGRES_PASSWORD}
       # GF_DATABASE_SSL_MODE: disable
-    # depends_on:
-    #   - insm_postgres_data_warehouse # postgres data warehouse must exists before launch to store dashboards there
+    depends_on:
+      - insm_postgres_data_warehouse # postgres data warehouse must exists before launch to store dashboards there
     volumes:
       #- ./grafana_storage:/var/lib/grafana    # We currently want it stateless
       - ./configurations/dashboard_providers:/etc/grafana/provisioning/dashboards # Configuring all dashboard providers via yaml files

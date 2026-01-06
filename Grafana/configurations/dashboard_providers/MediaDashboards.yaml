@@ -2,16 +2,14 @@ apiVersion: 1
 
 # https://grafana.com/docs/grafana/latest/administration/provisioning/#dashboards
 
-
 providers:
   - name: 'INSARAMA_STUDIOS_Dashboards' # Unique name of the dashboard provider
-    folder: 'INSARAMA_STUDIOS' # Folder name in Grafana UI to store dashboards
-    org_id: 1
-    org_name: 'INSARAMA_STUDIOS'
-    disableDeletion: false # Prevent deletion of dashboards in this folder
-    updateIntervalSeconds: 0 # how often Grafana will scan for changed dashboards, 0 to never check again
-    allowUiUpdates: true # Prevent manual editing of dashboard in the Grafana UI (FOR NOW ALLOWED FOR EASY CREATION)
+    folder: 'INSARAMA_STUDIOS'          # Folder in Grafana UI to store dashboards
+    orgId: 1                             # Correct field for organization ID
+    disableDeletion: false               # Allow deletion of dashboards removed from JSON
+    updateIntervalSeconds: 0            # How often Grafana will scan for changed dashboards, 0 to never check again
+    allowUiUpdates: true                 # Allow editing dashboards in UI
     options:
-      path: /etc/dashboards # Path to look for dashboard definition JSON files
-      foldersFromFilesStructure: true
+      path: /etc/dashboards              # Path to look for dashboard JSON files
+      foldersFromFilesStructure: true    # Use subfolders as dashboard folders
     
