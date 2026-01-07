@@ -371,10 +371,10 @@ These bridge tables include weights, allowing the model to represent the relativ
 
 #### 6.2 Neo4J Graph Entities
 
-The graph focuses mainly on Media entities and their attributes, including genres, roles as "Cast" and the companies that developped, filmed or published them.
+The graph focuses mainly on Media entities and their attributes, including genres, roles as "Cast" and the companies that developed, filmed, or published them.
 
 **Entitity Labels**:  
-- `Media` : Movies, TV-Shows and Video Games. They contain more or less same attributes as `DIM_MEDIA_INFO`.
+- `Media` : Movies, TV-Shows and Video Games. They contain almost the same attributes as `DIM_MEDIA_INFO`.
 - `Cast` : Contributors to the Media entity
 - `Company`
 - `Genre`
@@ -390,56 +390,74 @@ The graph focuses mainly on Media entities and their attributes, including genre
 
 Mostly involves: 
 - normalizing nulls (`\N` to `None`)
-- removing anormalities: for example titles that only contained one letter and didn't exist in the IMDB official web page. 
+- removing anomalies: for example, titles that only contained one letter and didn't exist in the IMDB official web page. 
 Another example could be reviews without a rating or critic revieweurs who posted TWO reviews for the same media AND platform ("GamesRadar" is one of them).
 
 ### 7.2 Data Transformation
 
-- Joinning and merging rows: 
+- Joining and merging rows: 
 
-Given the many to many relationships like with `DIM_MEDIA_INFO` to `GENRES`, ... it was necessary to remap correctly DISTINCT ENTITIES with their uuids to 
-their constrained entity. This was divided into to parts:
+Given the many-to-many relationships like with `DIM_MEDIA_INFO` to `GENRES`, ... it was necessary to remap correctly DISTINCT ENTITIES with their uuids to 
+their constrained entity. This was divided into two parts:
   1. Obtaining distinct entities and for each saving a list the ids of their constrained entities they are associated with.
   2. Defining their ids now that they are distinct.
-  3. Remapping for each distinct entity and for each of their constrained entities' id the id of the distinct entity: constrained_entity.foreing_key = distinct_entity.key, and saving the distinc entity as a row.
+  3. Remapping for each distinct entity and for each of their constrained entities' id the id of the distinct entity: constrained_entity.foreing_key = distinct_entity.key, and saving the distinct entity as a row.
   4. Create a bridge table with both ids and a `weight = 1/len(constrained entity id list)`
 
 Once both a list of rows for the distinct enities and the bridge table is obtained, we then load it to the MongoDB transient server.
 
-Constrained entity rows should contained their mapped foreign keys as such they can finally be loaded.
+Constrained entity rows should contain their mapped foreign keys so that they can finally be loaded.
 
 - To obtain `DIM_SECTION.group` columns like section_group or `DIM_MEDIA_INFO.franchise` we perform the following operation:
 
-We want to obtain a label taht is a contiguous subset, forcefully containning the first token (each word is a token).
+We want to obtain a label that is a contiguous subset, forcefully containing the first token (each word is a token).
 
 Example: `Super Mario Galaxy, Super Mario 3D World, Super Mario Galaxy 2` -> `franchise_label = Super Mario` <-- Must contain at least the first token "Super" otherwise not a franchise => label = null.
 
   1. Tokenize strings: to lower case, punctuations, clean double white spaces, split by whitespaces into a list then a set, remove stop words ...
-  2. Then we cluster by jaccard similarity, adding edges to a graph if `similarity >= threshold` and finding intraconnected nodes
+  2. Then we cluster by Jaccard similarity, adding edges to a graph if `similarity >= threshold` and finding intraconnected nodes
   3. We extract the most common contiguous from the start subset of tokens to each entity in the cluster
-  4. Finally we remap the label as a new column to the cluster entities by their ids.
+  4. Finally, we remap the label as a new column to the cluster entities by their ids.
 
 ### 7.3 Data Enrichment (IMDB Roles)
 
-For `ROLES` specifically it was more difficult given it required joinning from two VERY LARGE (+100M rows) relational-like saved sources.
+For `ROLES` specifically, it was more difficult given it required joining from two VERY LARGE (+100M rows) relational-like saved sources.
 
-Furthermore titles didn't always match exacly, différentiating by punctuation, case, and even form or elements, one sometimes being mroe or less a subset of the other.
+Furthermore, titles didn't always match exactly, différentiating by punctuation, case, and even form or elements, one sometimes being more or less a subset of the other.
 
-1. Title matching of `title.basics.tsv.gz` and our media_
+1. Title matching of `title.basics.tsv.gz` (15M rows) and our `DIM_MEDIA_INFO` rows:
 
-Given their size we perform three filters:
+Given its size, we perform three filters:
 
-- General celanning and media type of `title.basics.tsv.gz`
+- General cleaning and media type of `title.basics.tsv.gz`: we only obtain series and movies, not episodes, we don't take nulls, abnormalities, ...
+- 
+- Given a set of release years of `DIM_MEDIA_INFO` and runtime duration, we merge by year and runtime, thus reducing our candidates even further.
+It is important to mention that IMDB and `DIM_MEDIA_INFO` years vary with an interval of +-1year or +-2min for runtime, thus we use an absolute difference <= epsilon to filter and not equality.
 
-- Filter by actually needed `nconst` values.
-  
-- A simple inner join on `nconst` 
+- Finally, a Jaccard similarity on cleaned and tokenized titles and iterative matching of best options by a "King of the Hill" approach (if a better match is found, then replace).
+
+With this, we finally obtain a mapping from IMDB title ids to `DIM_MEDIA_INFO` ids:  `tconst -> media_info_id`.
+
+2. Joining with `title.principals.tsv.gz` (100M rows) for roles:
+
+- Filter by `tconst` from our previous map to only get the desired roles of our matched titles.
+- Clean and prepare attributes to build `ROLES` rows (for example, `role` is either `characters` or `job` cleaned and normalized).
+- Map distinct `ROLES` entities, adding also the `media_info_id`s to refer to when remapping.
+
+We end up with a list of distinct `ROLES` rows, but we are still missing `person_name`, instead we have the person id `nconst`...
+
+3. Joining with `name.basics.tsv.gz` (15M rows) for roles:
+
+- Filter by actually needed `nconst` values from a previously built set.
+- A simple inner join on `nconst`
+
+We end up remapping and building the bridge table to obtain `ROLES` rows and set constraints. We also load it to MongoDB
 
 
 ### 7.4 Persistence and Durability
 
-Given all entities where laoded to MongoDB in the correct dictionary format for the relational tables into their respective collections (one colelction per table),
-we can just read these collections, and persist in batches (due to memory issues) by applying an ObjectRelationModel (ORM) class wrapper in the batch generator to each read dictionary row from MongoDB.
+Given all entities were loaded to MongoDB in the correct dictionary format for the relational tables into their respective collections (one collection per table),
+we can just read these collections and persist in batches (due to memory issues) by applying an ObjectRelationModel (ORM) class wrapper in the batch generator to each read dictionary row from MongoDB.
 
 ### 7.5 Graphs for Neo4J
 
