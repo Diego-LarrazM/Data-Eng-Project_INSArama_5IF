@@ -1,0 +1,27 @@
+services:
+  insm_postgres_data_warehouse:
+    image: postgres:16
+    container_name: ${DW_POSTGRES_HOST}
+    environment:
+      POSTGRES_USER: ${DW_POSTGRES_USER}
+      POSTGRES_PASSWORD: ${DW_POSTGRES_PASSWORD}
+      POSTGRES_DB: ${DW_POSTGRES_DB}
+    ports:
+      - "${DW_POSTGRES_COM_PORT}:5432"
+    restart: always
+    networks:
+      - TEST_NET
+  
+  pgadmin:
+    image: elestio/pgadmin
+    environment:
+      PGADMIN_DEFAULT_EMAIL: test@test.t
+      PGADMIN_DEFAULT_PASSWORD: test
+    ports:
+      - "5050:80" # type localhost:5050 to your browser to access the UI
+    networks:
+      - TEST_NET
+
+networks:
+  TEST_NET:
+    driver: bridge

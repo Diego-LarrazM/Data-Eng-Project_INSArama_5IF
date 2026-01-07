@@ -1,107 +1,96 @@
+https://mermaid.live/edit
+
 ```mermaid
 ---
 title: Media Review Star Schema
 ---
 erDiagram
-FACT_REVIEW {
-    INT Reviewer_ID
-    INT Time_ID
-    INT Platform_ID
-    INT MediaInfo_ID
-    INT Franchise_ID
-    INT RatingScore
+FACT_REVIEWS {
+    STRING reviewer_id PK "FK" 
+    STRING time_id PK "FK"
+    STRING section_id PK "FK"
+    STRING media_info_id PK "FK"
+    INT rating
 }
 
 DIM_MEDIA_INFO {
-    INT MediaInfo_ID
-    String PrimaryTitle
-    String TitleLanguage
-    String OriginalTitle
-    String MediaType
-    NUMERIC Sales(Bonus)
-    NUMERIC Duration
-    String Description
-    DATE ReleaseDate
-    INT PEGI_MPARating(SemiBonus)
+    STRING id PK
+    STRING media_type
+    STRING franchise
+    STRING primary_title
+    STRING release_date
+    FLOAT duration
+    STRING pegi_mpa_rating
+    STRING description
 }
 
-
-
-BRIDGE_MEDIA_COMPANY{
-    INT MediaInfo_ID
-    INT Company_ID
-    NUMERIC Weight
+BRIDGE_MEDIA_COMPANY {
+    STRING media_id PK "FK"
+    STRING company_id PK "FK"
+    FLOAT weight
 }
 
 COMPANIES {
-    INT Company_ID
-    String CompanyName
-    NUMERIC NetWorth(Bonus)
+    STRING id PK
+    STRING company_role
+    STRING company_name
 }
 
-BRIDGE_MEDIA_GENRE{
-    INT MediaInfo_ID
-    INT Genre_ID
-    NUMERIC Weight
+BRIDGE_MEDIA_GENRE {
+    STRING media_id PK "FK"
+    STRING genre_id PK "FK"
+    FLOAT weight
 }
+
 GENRES {
-    INT Genre_ID
-    String GenreTitle
+    STRING id PK
+    STRING genre_title
 }
 
-BRIDGE_MEDIA_ROLES {
-    INT MediaInfo_ID
-    INT Roles_ID
-    NUMERIC Weight
+BRIDGE_MEDIA_ROLE {
+    STRING media_id PK "FK"
+    STRING role_id PK "FK"
+    FLOAT weight
 }
 
-ROLES{
-    INT Role_ID
-    String Name
-    String Role
-    String PlayMethod
+ROLES {
+    STRING id PK
+    STRING person_name
+    STRING play_method
+    STRING role
 }
 
 DIM_REVIEWER {
-    INT Reviewer_ID
-    String ReviewerUsername
-    BOOL IsCritic
-    String Association
+    STRING id PK
+    STRING association
+    BOOLEAN is_critic
+    STRING reviewer_username
 }
 
 DIM_TIME {
-   INT Time_ID
-   INT Year
-   INT Month
-   INT Day
+    STRING id PK
+    INT year
+    INT month
+    INT day
 }
 
-DIM_PLATFORM {
-    INT Platform_ID
-    String PlatformName
-    String PlatformType
+DIM_SECTION {
+    STRING id PK
+    STRING section_type
+    STRING section_group
+    STRING section_name
 }
 
-DIM_FRANCHISE  { 
-     INT Franchise_ID
-     String FranchiseTitle
-     BOOL IsFinished(BONUS)
-}
-
-
-
-DIM_REVIEWER ||--o{ FACT_REVIEW : reviewed_by
-DIM_MEDIA_INFO ||--o{ FACT_REVIEW : reviews
-DIM_TIME ||--o{ FACT_REVIEW : posted_at
-DIM_PLATFORM ||--o{ FACT_REVIEW : accessed_media_from
-DIM_FRANCHISE ||--o{ FACT_REVIEW : media_from
-
+DIM_REVIEWER ||--o{ FACT_REVIEWS : reviewed_by
+DIM_MEDIA_INFO ||--o{ FACT_REVIEWS : reviews
+DIM_TIME ||--o{ FACT_REVIEWS : posted_at
+DIM_SECTION ||--o{ FACT_REVIEWS : accessed_media_from
 
 DIM_MEDIA_INFO }o--o{ BRIDGE_MEDIA_GENRE : has_genres
 BRIDGE_MEDIA_GENRE }o--o{ GENRES : genre
 DIM_MEDIA_INFO }o--o{ BRIDGE_MEDIA_COMPANY : handled_by
 BRIDGE_MEDIA_COMPANY }o--o{ COMPANIES : company
-DIM_MEDIA_INFO }o--o{ BRIDGE_MEDIA_ROLES : roles_involved
-BRIDGE_MEDIA_ROLES }o--o{ ROLES : role
+DIM_MEDIA_INFO }o--o{ BRIDGE_MEDIA_ROLE : roles_involved
+BRIDGE_MEDIA_ROLE }o--o{ ROLES : role
 
 ```

@@ -1,0 +1,46 @@
+services:
+  ##############
+  # PostgreSQL #
+  ##############
+  insm_postgres_data_warehouse: # MUST MATCH DW_POSTGRES_HOST in .env
+    image: postgres:16
+    container_name: ${DW_POSTGRES_HOST}
+    environment:
+      POSTGRES_USER: ${DW_POSTGRES_USER}
+      POSTGRES_PASSWORD: ${DW_POSTGRES_PASSWORD}
+      POSTGRES_DB: ${DW_POSTGRES_DB}
+    volumes:
+       - INSARAMA_POSTGRES_DW_DATA:/var/lib/postgresql/data
+    ports:
+      - "${DW_POSTGRES_COM_PORT}:5432"
+    restart: always
+    networks:
+      - INSARAMA_NET
+
+  insm_pgadmin_data_warehouse:
+    container_name: ${DW_PGADMIN_HOST}
+    image: elestio/pgadmin
+    environment:
+      PGADMIN_DEFAULT_EMAIL: ${DW_PGADMIN_DEFAULT_EMAIL}
+      PGADMIN_DEFAULT_PASSWORD: ${DW_PGADMIN_DEFAULT_PASSWORD}
+    ports:
+      - "${DW_PGADMIN_PORT}:80" # type localhost:DW_PGADMIN_PORT to your browser to access the UI
+    networks:
+      - INSARAMA_NET
+
+  #########
+  # Neo4J #
+  #########
+  insm_neo_data_warehouse:
+    image: neo4j
+    container_name: ${DW_NEO_HOST}
+    ports:
+        - "${DW_NEO_UI_PORT}:7474"
+        - "${DW_NEO_BOLT_PORT}:7687"
+    restart: always
+    environment:
+      - NEO4J_AUTH=none
+    volumes:
+      - INSARAMA_NEO_DW_DATA:/data
+    networks:
+      - INSARAMA_NET

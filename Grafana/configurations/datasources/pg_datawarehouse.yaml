@@ -1,0 +1,22 @@
+apiVersion: 1
+
+# Mark provisioned data sources for deletion if they are no longer in a provisioning file. 
+# It takes no effect if data sources are already listed in the deleteDatasources section.
+# https://grafana.com/docs/grafana/latest/administration/provisioning/
+
+prune: true
+
+datasources:
+  - name: insm_postgres_DW
+    orgId: 1
+    type: postgres
+    access: proxy
+    url: ${DW_POSTGRES_HOST}:5432
+    database: ${DW_POSTGRES_DB}
+    user: ${DW_POSTGRES_USER}
+    secureJsonData:
+      password: ${DW_POSTGRES_PASSWORD}
+    jsonData:
+      sslmode: "disable"
+    editable: true # Prevent manual editing of this data source in the Grafana UI
+    
