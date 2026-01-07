@@ -425,12 +425,12 @@ For `ROLES` specifically, it was more difficult given it required joining from t
 
 Furthermore, titles didn't always match exactly, différentiating by punctuation, case, and even form or elements, one sometimes being more or less a subset of the other.
 
-1. Title matching of `title.basics.tsv.gz` (15M rows) and our `DIM_MEDIA_INFO` rows:
+1. **Title matching of `title.basics.tsv.gz` (15M rows) and our `DIM_MEDIA_INFO` rows**:
 
 Given its size, we perform three filters:
 
 - General cleaning and media type of `title.basics.tsv.gz`: we only obtain series and movies, not episodes, we don't take nulls, abnormalities, ...
-- 
+  
 - Given a set of release years of `DIM_MEDIA_INFO` and runtime duration, we merge by year and runtime, thus reducing our candidates even further.
 It is important to mention that IMDB and `DIM_MEDIA_INFO` years vary with an interval of +-1year or +-2min for runtime, thus we use an absolute difference <= epsilon to filter and not equality.
 
@@ -438,7 +438,7 @@ It is important to mention that IMDB and `DIM_MEDIA_INFO` years vary with an int
 
 With this, we finally obtain a mapping from IMDB title ids to `DIM_MEDIA_INFO` ids:  `tconst -> media_info_id`.
 
-2. Joining with `title.principals.tsv.gz` (100M rows) for roles:
+2. **Joining with `title.principals.tsv.gz` (100M rows) for roles**:
 
 - Filter by `tconst` from our previous map to only get the desired roles of our matched titles.
 - Clean and prepare attributes to build `ROLES` rows (for example, `role` is either `characters` or `job` cleaned and normalized).
@@ -446,7 +446,7 @@ With this, we finally obtain a mapping from IMDB title ids to `DIM_MEDIA_INFO` i
 
 We end up with a list of distinct `ROLES` rows, but we are still missing `person_name`, instead we have the person id `nconst`...
 
-3. Joining with `name.basics.tsv.gz` (15M rows) for roles:
+3. **Joining with `name.basics.tsv.gz` (15M rows) for roles**:
 
 - Filter by actually needed `nconst` values from a previously built set.
 - A simple inner join on `nconst`
