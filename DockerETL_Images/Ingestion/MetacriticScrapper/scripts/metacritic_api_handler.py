@@ -1,4 +1,4 @@
-from models import MetacriticReview
+from metacritic_review import MetacriticReview
 import requests
 import time
 import random
