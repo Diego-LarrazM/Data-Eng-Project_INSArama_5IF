@@ -446,7 +446,7 @@ With this, we finally obtain a mapping from IMDB title ids to `DIM_MEDIA_INFO` i
 
 We end up with a list of distinct `ROLES` rows, but we are still missing `person_name`, instead we have the person id `nconst`...
 
-3. **Joining with `name.basics.tsv.gz` (15M rows) for roles**:
+3. **Joining with `name.basics.tsv.gz` (15M rows) for `person_name`**:
 
 - Filter by actually needed `nconst` values from a previously built set.
 - A simple inner join on `nconst`
