@@ -15,59 +15,41 @@ Project [DATA Engineering](https://www.riccardotommasini.com/courses/dataeng-ins
 - **Doha ES-SOUFI** — doha.es-soufi@insa-lyon.fr  
 - **Jassir HABBA** — jassir.habba@insa-lyon.fr  
 
-## Abstract
-This project presents the design and implementation of a complete data engineering system for cross-media recommendation across movies, TV series, and video games.  
-Heterogeneous data from **IMDb** and **Metacritic** is ingested, processed, cleaned, and unified through automated pipelines orchestrated with Apache Airflow.
+# 1. Introduction
 
-Shared attributes such as genres, themes, ratings, reviews, and contributors are structured to support:
-- analytical studies using a **relational data warehouse**, and
-- similarity‑based recommendations using a **graph database**.
+## 1.1 Project Context and Objectives
 
-The resulting platform enables cross‑domain discovery while highlighting audience preferences, critical reception, and market trends across different entertainment media.
+Movies, TV series, and video games are now closely connected forms of entertainment. Users often move from one medium to another within the same genre, universe, or theme. Despite this convergence, data describing these media is usually stored and analyzed separately, which limits cross-media analysis and recommendation capabilities.
 
-## 1. Introduction
+From a data engineering perspective, this project addresses the challenge of integrating heterogeneous multimedia datasets into a unified analytical system. These datasets differ in format, structure, semantics, and update frequency, requiring well-defined ingestion, transformation, and modeling strategies.
 
-### 1.1 Project Context and Objectives
+The main objective of this project is to design and implement a complete data engineering pipeline that collects raw multimedia data, cleans and enriches it, and makes it available for analytics and recommendations. The architecture follows a layered approach with a landing zone, a staging zone, and a production zone, ensuring data durability and reproducibility. All data movements and transformations are orchestrated using Apache Airflow.
 
-Movies, TV series, and video games are increasingly interconnected forms of entertainment. Users often transition between these media within the same genres, fictional universes, or narrative themes. Despite this convergence, the data describing these media types is typically stored and analyzed in isolation, which limits cross‑media analysis and recommendation capabilities.
-
-From a data engineering perspective, this project addresses the challenge of integrating **heterogeneous multimedia datasets** that differ in format, structure, semantics, and update frequency. Such integration requires robust ingestion mechanisms, well‑defined transformation pipelines, and carefully designed data models.
-
-The main objective of this project is to design and implement an end‑to‑end data engineering pipeline that:
-- collects raw multimedia data from multiple sources,
-- cleans, normalizes, and enriches this data,
-- stores it in durable and analytics‑ready structures,
-- supports both aggregated analytical queries and relationship‑based recommendations.
-
-The architecture follows a layered approach composed of a **landing zone**, a **staging zone**, and a **production zone**, ensuring data durability, reproducibility, and clear separation of concerns. All data movements and transformations are orchestrated using **Apache Airflow**.
+In the production layer, the project supports both aggregated analytical queries and relationship-based exploration. This is achieved by combining a relational data model optimized for analytics with a graph-based model suited for similarity and recommendation use cases.
 
 ---
 
-### 1.2 Domain Description
+## 1.2 Domain Description
 
-The domain of this project is **cross‑media entertainment analysis**, focusing on movies, TV series, and video games. These media types share many descriptive attributes, such as genres, themes, contributors, release dates, and audience ratings, which makes them suitable for comparative analysis and similarity‑based exploration.
+The domain of this project is cross-media entertainment analysis, focusing on movies, TV series, and video games. These media types share common descriptive attributes such as genres, themes, contributors, and audience ratings, making them suitable for comparative and similarity-based analysis.
 
-By unifying datasets from different sources, the system enables exploration of links between media items across domains rather than restricting analysis to a single content type. This domain is particularly relevant for data engineering because it involves:
-- multi‑source data integration,
-- semantic alignment of attributes,
-- hybrid analytical models combining relational and graph databases,
-- real‑world recommendation and market analysis use cases.
+The project uses structured metadata and review-related information to analyze how different forms of media are evaluated and how they relate to each other. By unifying these datasets, the system enables the exploration of links between media items across domains, rather than restricting analysis to a single content type.
+
+This domain is particularly relevant for data engineering because it involves multi-source integration, semantic alignment of attributes, and hybrid analytical models. It also reflects real-world use cases in content recommendation, market analysis, and strategic decision-making in the entertainment industry.
 
 ---
 
-### 1.3 Research Questions
+## 1.3 Research Questions
 
 The data pipelines and analytical models implemented in this project are designed to answer the following research questions:
 
 - Which video games are most similar to a given movie or TV series based on shared genres, themes, and metadata?
-- Which attributes (genres, keywords, contributors) contribute most to strong cross‑media links and high ratings?
-- How do recommendation results differ between a relational, feature‑based analytical model and a graph‑based similarity model?
+- Which attributes (such as genres, keywords, or contributors) contribute the most to strong cross-media links and ratings, from a market analysis perspective?
+- How do recommendation results differ when using a feature-based analytical model compared to a graph-based similarity model?
 
-These questions directly guide the data modeling choices and the enrichment logic applied throughout the pipeline.
+These questions directly guide the data modeling choices, the enrichment logic applied in the staging zone, and the analytical structures implemented in the production zone.
 
----
-
-## 2. How to Run the Project
+# 2. How to Run the Project
 
 This project is fully containerized and can be executed locally using **Docker Compose**.  
 All required services (Apache Airflow, PostgreSQL, MongoDB, Neo4j, analytics tools) are deployed as Docker containers.
@@ -76,7 +58,7 @@ No local installation of databases or Python dependencies is required, and the p
 
 ---
 
-### 2.1 Prerequisites
+## 2.1 Prerequisites
 
 The only required tools on the host machine are:
 - Docker
@@ -85,7 +67,7 @@ The only required tools on the host machine are:
 
 ---
 
-### 2.2 Project Execution
+## 2.2 Project Execution
 
 **Step 1 – Clone the repository**
 ```bash
@@ -105,23 +87,84 @@ This command:
 
 To stop the environment:
 ```bash
-docker compose down -v (to destroy volumes created directly by docker need to put a warning)
+docker compose down 
 ```
-
+- To destroy volumes created directly by docker use -v.
 ---
 
-### 2.3 Access Airflow
+## 2.3 Access Airflow
 
 - Airflow Web UI: http://localhost:8080
+
+(default values in Airflow/.env)
+
+0. Auth : airflow/airflow
 
 Airflow orchestrates the complete pipeline:
 - Docker Operator Image Building
 - Ingestion
 - Staging
 
+![Airflow Logs](./Documents/Images/airflow_running.png)
+
 ---
 
-### 2.4 Environment Information
+### 2.4 Access Grafana
+
+- Grafana Web UI: http://localhost:3000 
+
+ATTENTION: Grafana lazy loads data sources. as such when first connecting you have to refresh the connection:
+
+(default values in Grafana/.env)
+
+0. Auth : insarama/insarama
+
+1. Connections >> Data Sources >> insm_postgres_DW >> (at the bottom) Click blue "Save & test" button to refresh conenctioin ? can u provide screenshots of ur pc so they can see better? just give them to me i can draw boxes and stuff like pointy arrows in clickbait youtube titles
+  
+![Refresh Connection](./Documents/Images/refresh_con.png)
+
+2. Go to Dashboards >> INSARAMA_DASHBOARD (if nothing appears refresh)
+
+![Grafana Dashboard](./Documents/Images/grafana_dashboard.png)
+
+---
+
+### 2.5 Access PostgreSQL Start Schema (pgAdmin)
+
+- pgAdmin Web UI: http://localhost:5050
+
+(default values in Datawarehouse/.env)
+
+1. Auth : insarama@gamesradar.com/insarama
+   
+2. Register a new server :
+   - >> Connection
+   - Host name/address : insm_postgres_data_warehouse
+   - Username: insarama 
+   - Password: insarama 
+   - >> Save
+
+![PGadmin Register](./Documents/Images/pgadmin_register.png)
+
+---
+
+### 2.6 Query Neo4J Graph (Bolt)
+
+- Bolt Web UI: http://localhost:7474
+
+(default values in Datawarehouse/.env)
+
+1. Select no authentification foor auth. type
+
+![Bolt connect](./Documents/Images/bolt_connect.png)
+
+You can then query as u want in Cypher.
+
+![Bolt query](./Documents/Images/bolt_query.png)
+
+---
+
+### 2.7 Environment Information
 
 | Service     | Address               
 |------------|-----------------------
@@ -134,125 +177,359 @@ Airflow orchestrates the complete pipeline:
 
 ---
 
-## 3. Datasets Description
+# 3. Datasets Description
 
-### 3.1 Data Source 1 – Metacritic
+## 3.1 Data Source 1 – Metacritic
 
-Metacritic is a platform aggregating critic and user reviews for movies, TV series, and video games.
+The first data source used in this project is **Metacritic**, a well-known platform that aggregates critic reviews, user reviews, and metadata for multiple types of media, including movies, TV series, and video games. This source is particularly relevant for cross-media analysis because it provides a consistent evaluation framework across different entertainment domains.
 
-- **Access:** Web scraping (no public API)
-- **Format:** JSON
-- **Update Frequency:** On‑demand (when pipeline is executed)
+### Data Access and Format
 
-**Data Content**
-- Media metadata (title, summary, genres, release date, platforms)
-- Critic reviews (author, source, score, date, text)
-- User reviews (rating, comment, date)
+The data is collected through **web scraping**, as Metacritic does not provide an official public API for bulk data extraction. The scraping process retrieves structured information and stores it directly in **JSON format**. This format is well suited for representing nested and heterogeneous data, such as media metadata combined with multiple types of reviews.
 
-The structure varies by media type:
-- Video games: reviews per platform
-- TV series: reviews per season
-- Movies: global reviews
+Each JSON document corresponds to a single media item and contains both descriptive attributes and review data. Example JSON files for a video game, a movie, and a TV series are included in the repository to allow offline execution and reproducibility.
+
+### Data Content
+
+The Metacritic dataset provides two main categories of information.
+
+**Media metadata**, which includes:
+- Title and media type (movie, TV series, or video game)
+- Summary and content description
+- Genres and themes
+- Release date and age rating
+- Contributors (developers, directors, cast, publishers, production companies)
+- Platform information for video games
+- Season-level structure for TV series
+
+**Review data**, which includes:
+- Critic reviews with source, author, score, publication date, and review text
+- User reviews with rating, comment, and posting date
+
+The organization of reviews varies by media type:
+- Video game reviews are grouped by platform
+- TV series reviews are grouped by season
+- Movie reviews are provided at the global title level
+
+This structure allows fine-grained analysis while preserving domain-specific characteristics.
+
+### Update Frequency
+
+Metacritic does not provide an official API or a fixed update schedule. As a result, the data is updated **only when the scraping pipeline is executed**. This means that new or updated reviews are collected on demand, rather than automatically.
+
+---
+
+## 3.2 Data Source 2 – IMDb Non-Commercial Datasets
+
+The second data source used in this project is the **IMDb Non-Commercial Datasets**, which provide structured and regularly updated information about movies, TV series, and the people involved in their production. These datasets are publicly available for personal and academic use and can be downloaded from the official IMDb data repository.
+
+Unlike Metacritic, which is scraped, IMDb data is provided as **static downloadable files**.
+
+### Data Access and Format
+
+IMDb datasets are distributed as **compressed TSV files (`.tsv.gz`)**, encoded in UTF-8. Each file contains a header row describing the schema, and missing values are explicitly represented using the `\N` marker. The datasets are refreshed daily, which makes them suitable for up-to-date metadata enrichment.
+
+In this project, the datasets are downloaded directly from the official source:
+https://datasets.imdbws.com/
+
+Once downloaded, the files are processed during the staging phase.
+
+### Datasets Used
+
+The project uses the following three IMDb datasets:
+
+- **`title.basics.tsv.gz`**  
+  This dataset provides core information about media titles, including title type (movie or TV series), release year, runtime, and genres. It is used to identify media items and normalize genre information across domains.
+
+- **`title.principals.tsv.gz`**  
+  This dataset contains information about the roles and contributors associated with each title, such as actors, directors, and other key participants. It is essential for modeling relationships between media items and people.
+
+- **`name.basics.tsv.gz`**  
+  This dataset provides information about individuals, including names, professions, and known titles. It is used to enrich contributor data and support relationship modeling in both relational and graph-based analyses.
+
+Together, these datasets allow precise linking between media items and contributors through unique identifiers (`tconst` for titles and `nconst` for people).
+
+### Update Frequency
+
+IMDb datasets are refreshed daily by the provider. In this project, updates are controlled by the ingestion pipeline: new versions of the datasets are fetched when the pipeline is executed.
 
 ---
 
-### 3.2 Data Source 2 – IMDb Non‑Commercial Datasets
+## 3.3 Justification of Data Source Choices
 
-IMDb provides structured metadata through downloadable datasets.
+Metacritic is used because it offers rich and reliable **per-user** rating data across multiple media types. It aggregates both critic reviews and user reviews, providing detailed textual feedback as well as numerical ratings. This makes it particularly suitable for analyzing audience perception, critical reception, and overall media evaluation. In addition, Metacritic covers movies, TV series, and video games within a single platform, which is essential for performing consistent cross-media analysis.
 
-- **Access:** File download
-- **Format:** TSV (`.tsv.gz`)
-- **Encoding:** UTF‑8
-- **Update Frequency:** Daily
+IMDb is used as the main source of structured metadata and cast and contributor information. Its datasets provide detailed information about titles and the people involved in their creation. This level of documentation and structure makes IMDb especially appropriate for modeling relationships between media items and individuals, which is a key requirement for similarity analysis and graph-based recommendations.
 
-**Datasets Used**
-- `title.basics.tsv.gz`
-- `title.principals.tsv.gz`
-- `name.basics.tsv.gz`
-
-These datasets enable precise linking between media items and contributors using unique identifiers.
-
----
-
-### 3.3 Justification of Data Source Choices
-
-Metacritic provides rich evaluation data across multiple media types, including both critic and user perspectives. IMDb complements this with high‑quality structured metadata and contributor relationships.
-
-Together, these sources offer both depth and structure, making them well suited for cross‑media analytics and recommendation systems.
-
----
 
 ## 4. Data Architecture and Pipeline
 
+- Pipeline Schema
+  
 ![Pipeline](./Documents/Schemas/Pipeline.png)
 
-### 4.1 Architecture Overview
+- Airflow Operators (Dag)
 
-The project follows a layered data architecture composed of:
-- **Landing Zone:** Raw ingested data
-- **Staging Zone:** Cleaned, normalized, and enriched data
-- **Production Zone:** Analytics‑ready relational and graph models
+![Airflow Dag](./Documents/Images/airflow_pipeline.png)
 
----
+### 4. Pipeline Overview
 
-### 4.2 Pipeline Phases
+The pipeline is composed of three main processing phases, each orchestrated as part of an Apache Airflow DAG. The production environment is deployed as Docker services: PostgreSQL, pgAdmin, Grafana and Node container.
 
-**Ingestion Phase**
-- IMDb datasets downloaded using `curl`
-- Metacritic data scraped using BeautifulSoup
-- Raw data stored in MongoDB
+#### Ingestion Phase
 
-**Staging Phase**
-- Data cleaning and normalization with Pandas
-- Schema alignment across media types
-- Enrichment with contributors and roles
-- Persistence into relational and graph databases
+During the ingestion phase, data is collected from the web. A scraper extracts media information and reviews from Metacritic in JSON format, while a curler retrieves IMDb datasets in compressed TSV format.  
+The ingested data is stored in a shared volume so that it can be accessed by a downstream transformation and wrangling operator.
 
-**Production Phase**
-- PostgreSQL star schema for analytics
-- Neo4j graph for similarity and recommendation
-- Visualization via Grafana dashboards
+#### Staging Phase
 
----
+During the staging phase, data is loaded from the shared volume previously mentionned before being processed using Pandas-based (vectorized) transformations. 
+Finally, prepared data is loaded to a MongoDB transient server, ensuring separation between Ingestion-Transformation and Persistance.
 
-## 5. Data Modeling
+This phase includes:
+- handling missing values and null fields,
+- merging datasets from different sources,
+- normalizing schemas across media types,
+- enriching media data with contributor roles (actors, writers, ...).
 
-### 5.1 SQL Star Schema
+Processed data is then persisted into structured storage systems. Two complementary models are created:
 
-![Star Schema](./Documents/Schemas/Media_Review_Star_Schema.png)
+- a relational data warehouse optimized for analytical queries,
+- a graph representation capturing relationships between media items, contributors, genres, and keywords.
 
-The analytical model is built around a **FACT_REVIEWS** table, linked to:
+This phase ensures that data is consistent, durable, and ready for analytical workloads.
 
-**Dimension Tables**
-- DIM_MEDIA_INFO
-- DIM_TIME
-- DIM_REVIEWER
-- DIM_SECTION
+#### Production Phase
 
-**Bridge Tables**
-- BRIDGE_MEDIA_GENRE
-- BRIDGE_MEDIA_COMPANY
-- BRIDGE_MEDIA_ROLE
+In the production phase, curated data from the staging zone is exposed to analytical and recommendation components. This layer is designed for end-user consumption and supports both aggregate analytics and relationship-based exploration.
 
-These bridge tables model many‑to‑many relationships and include weights to support similarity analysis.
+A relational database is used to store analytics-ready tables following a star-schema design. These tables are queried using SQL and connected to Grafana, which provides dashboards for comparing media ratings, genres, and shared attributes across domains.
+
+In parallel, a graph database implemented with Neo4j is used to model relationships between media items, contributors, genres, and keywords. Neo4j enables efficient traversal of connections and supports similarity-based queries that are difficult to express using relational models alone. This graph representation is the foundation of the cross-media recommendation engine, which identifies links between movies, TV series, and video games based on shared characteristics.
 
 ---
 
-## Staging
+### 5. Data Ingestion 
 
-- ### <table> <tr><th><img src="./Documents/Images/SQLPostgresLogo.jpg" width="30" height="38" /></th> <th>SQL Media Star Schema</th> </tr></table>
+The data ingestion phase is responsible for collecting raw data from external sources and storing it in the landing zone without applying any transformation. This phase is fully orchestrated using Apache Airflow and represents the first step of the data pipeline.
 
-<center>
+The main objective of this phase is to reliably acquire heterogeneous data and make it available for downstream processing, while preserving the original structure and content of the sources.
 
-![logo](./Documents/Schemas/Media_Review_Star_Schema.png)
+#### 5.1 Data Sources and Ingestion Strategy
 
-</center>
+The ingestion phase implements two distinct mechanisms to collect data from external sources: file-based downloading using `curl` for IMDb datasets, and HTML scraping using BeautifulSoup for Metacritic content.
 
-- ### <table> <tr><th><img src="./Documents/Images/VectorDBLogo.jpg" width="40" height="38" /></th> <th>VectorDB Embedding Schema</th> </tr></table>
+##### 5.1.1 IMDb Data Ingestion – File Downloading with Curl
 
-## Queries 
+IMDb data ingestion is performed using a curl-based downloading strategy. The IMDb Non-Commercial Datasets are publicly available as compressed TSV files and can be accessed through stable URLs, making them suitable for deterministic, file-based ingestion. A dedicated ingestion script downloads the required datasets
 
-## Requirements
+
+##### 5.1.2 Metacritic Data Ingestion – Web Scraping with BeautifulSoup
+
+Metacritic data is ingested using web scraping, as no official public API is available for bulk access. The scraping logic is implemented in Python using the BeautifulSoup library.
+
+The scraper sends HTTP requests to Metacritic pages corresponding to movies, TV series, and video games. The HTML responses are parsed to extract:
+
+- media metadata (title, summary, genres, platforms, release information),
+- critic reviews (author, source, score, date, and review text),
+- user reviews with ratings and comments.
+
+The scraper handles media-specific page structures:
+
+- video game reviews are collected per platform,
+- TV series reviews are collected per season,
+- movie reviews are collected at the title level.
+
+Extracted information is serialized directly into JSON documents, preserving nested structures and relationships. Each JSON file corresponds to a single media item and contains both metadata and review data.
+
+---
+
+### 6. Data Modeling
+
+#### 6.1 SQL Star Schema
+
+To support analytical queries and dashboard-based exploration, the project implements a relational star schema in the production layer. This model is designed to efficiently analyze media reviews across multiple dimensions such as time, reviewer type, media characteristics, and content attributes.
+
+![StarSchema](./Documents/Schemas/Media_Review_Star_Schema.png)
+
+The `FACT_REVIEWS` table represents individual review events. Each record corresponds to a single review and stores measurable values such as the rating score, along with foreign keys referencing the associated dimensions.
+
+The dimension tables describe the different axes along which reviews can be analyzed:
+
+- `DIM_MEDIA_INFO` stores core information about media items, including title, media type (movie, TV series, or video game), release date, duration, and content rating.
+- `DIM_TIME` enables temporal analysis by structuring review dates into year, month, and day.
+- `DIM_REVIEWER` distinguishes between critic and user reviews and stores reviewer-related metadata.
+- `DIM_SECTION` represents the context in which the review was published (such as platform, season, or review section).
+
+To handle many-to-many relationships between media items and descriptive attributes, the schema uses bridge tables:
+
+- `BRIDGE_MEDIA_GENRE` links media items to genres,
+- `BRIDGE_MEDIA_COMPANY` links media items to production or publishing companies,
+- `BRIDGE_MEDIA_ROLE` links media items to contributor roles.
+
+These bridge tables include weights, allowing the model to represent the relative importance of genres, companies, or roles in similarity and analysis tasks.
+
+#### 6.2 Neo4J Graph Entities
+
+The graph focuses mainly on Media entities and their attributes, including genres, roles as "Cast" and the companies that developped, filmed or published them.
+
+**Entitity Labels**:  
+- `Media` : Movies, TV-Shows and Video Games. They contain more or less same attributes as `DIM_MEDIA_INFO`.
+- `Cast` : Contributors to the Media entity
+- `Company`
+- `Genre`
+
+**Constraints**:  
+- `has_cast`: `Media` -> `Cast`
+- `associated_with`: `Media` -> `Company`
+- `has_genre`: `Media` -> `Genre`
+
+# 7. Data Staging Zone
+
+### 7.1 Data Cleaning
+
+Mostly involves: 
+- normalizing nulls (`\N` to `None`)
+- removing anormalities: for example titles that only contained one letter and didn't exist in the IMDB official web page. 
+Another example could be reviews without a rating or critic revieweurs who posted TWO reviews for the same media AND platform ("GamesRadar" is one of them).
+
+### 7.2 Data Transformation
+
+- Joinning and merging rows: 
+
+Given the many to many relationships like with `DIM_MEDIA_INFO` to `GENRES`, ... it was necessary to remap correctly DISTINCT ENTITIES with their uuids to 
+their constrained entity. This was divided into to parts:
+  1. Obtaining distinct entities and for each saving a list the ids of their constrained entities they are associated with.
+  2. Defining their ids now that they are distinct.
+  3. Remapping for each distinct entity and for each of their constrained entities' id the id of the distinct entity: constrained_entity.foreing_key = distinct_entity.key, and saving the distinc entity as a row.
+  4. Create a bridge table with both ids and a `weight = 1/len(constrained entity id list)`
+
+Once both a list of rows for the distinct enities and the bridge table is obtained, we then load it to the MongoDB transient server.
+
+Constrained entity rows should contained their mapped foreign keys as such they can finally be loaded.
+
+- To obtain `DIM_SECTION.group` columns like section_group or `DIM_MEDIA_INFO.franchise` we perform the following operation:
+
+We want to obtain a label taht is a contiguous subset, forcefully containning the first token (each word is a token).
+
+Example: `Super Mario Galaxy, Super Mario 3D World, Super Mario Galaxy 2` -> `franchise_label = Super Mario` <-- Must contain at least the first token "Super" otherwise not a franchise => label = null.
+
+  1. Tokenize strings: to lower case, punctuations, clean double white spaces, split by whitespaces into a list then a set, remove stop words ...
+  2. Then we cluster by jaccard similarity, adding edges to a graph if `similarity >= threshold` and finding intraconnected nodes
+  3. We extract the most common contiguous from the start subset of tokens to each entity in the cluster
+  4. Finally we remap the label as a new column to the cluster entities by their ids.
+
+### 7.3 Data Enrichment (IMDB Roles)
+
+For `ROLES` specifically it was more difficult given it required joinning from two VERY LARGE (+100M rows) relational-like saved sources.
+
+Furthermore titles didn't always match exacly, différentiating by punctuation, case, and even form or elements, one sometimes being mroe or less a subset of the other.
+
+1. Title matching of `title.basics.tsv.gz` and our media_
+
+Given their size we perform three filters:
+
+- General celanning and media type of `title.basics.tsv.gz`
+
+- Filter by actually needed `nconst` values.
+  
+- A simple inner join on `nconst` 
+
+
+### 7.4 Persistence and Durability
+
+Given all entities where laoded to MongoDB in the correct dictionary format for the relational tables into their respective collections (one colelction per table),
+we can just read these collections, and persist in batches (due to memory issues) by applying an ObjectRelationModel (ORM) class wrapper in the batch generator to each read dictionary row from MongoDB.
+
+### 7.5 Graphs for Neo4J
+
+Easily obtained from prior mappings.
+
+---
+
+## 8.Production Zone and Analytics
+
+### 8.1 Analytical Queries  (Grafana)
+
+We provide an example dashboard with information on market trends like the evolution of average ratings over the years by users or critics,
+the most valued (rated on average) Genres per Platform, and so on ...
+
+### 8.2 Graph-Based Recommendation System (Neo4j)
+
+Permits graph querying on the UI to match media nodes. 
+
+# 9. Additional Components
+
+## 9.1 Tools Beyond Course Requirements
+
+In addition to the core technologies required by the course, several external tools were used to address specific technical needs in the pipeline.
+
+- **Docker Operator (Apache Airflow)**  
+  Used to execute ingestion and processing tasks inside isolated Docker containers. This ensures reproducibility, avoids dependency conflicts, and allows each task to run in a controlled environment.
+
+- **BeautifulSoup**  
+  Used for web scraping to extract media metadata and reviews from Metacritic web pages. It enables structured parsing of HTML content and supports handling different page layouts for movies, TV series, and video games.
+
+- **MongoDB**  
+  Used as a transient database during the ingestion phase to store raw and semi-structured data. Its flexible schema makes it suitable for holding heterogeneous JSON documents before cleaning and transformation.
+
+- **Grafana**  
+  Used to visualize analytical results produced from SQL queries on the production database. It provides interactive dashboards for exploring ratings, genres, and cross-media comparisons.
+
+- **Neo4j**  
+  Used as a graph database to model relationships between media items, contributors, genres, and attributes. It enables graph-based similarity queries and supports the cross-media recommendation engine.
+
+These tools extend the core architecture and contribute to a more expressive and realistic data engineering system.
+
+## 9.2 Theoretical Considerations
+
+Although the project primarily focuses on data integration and analytics, several **theoretical data engineering considerations** influenced its design.
+
+### 9.2.1 Data Governance
+From a **data governance perspective**, the architecture follows a layered approach separating raw data, staged data, and production-ready data. This separation helps structure data flows and makes transformations easier to understand and control, even if no dedicated governance framework is enforced.
+
+Regarding **reproducibility**, the project relies on containerization. All services are deployed using Docker, and pipeline tasks are executed through the Docker Operator. This ensures that data processing steps run in controlled and consistent environments, reducing dependency-related issues and improving reproducibility across executions.
+
+### 9.2.2 Privacy
+From a **privacy and ethical standpoint**, the project exclusively uses publicly available data. User reviews are handled as anonymous textual content and are not used to identify or profile individuals. No personal attributes are inferred, and analyses are performed at the media and attribute level rather than at the user level.
+
+While advanced governance and anonymization mechanisms are not implemented in the current version, these considerations guided architectural choices and represent potential directions for future improvements.
+
+# 10. Difficulties and Limitations
+
+Several technical and conceptual difficulties were encountered during the development of this project.
+
+One of the main challenges was **data alignment between Metacritic and IMDb**. The two sources do not share common identifiers, which made direct mapping between titles impossible. Differences in naming conventions, release years, and media formats required the use of approximate matching techniques, such as string similarity measures (e.g. Jaccard similarity), to link records across datasets. This process was error-prone and required multiple iterations to achieve acceptable results.
+
+Another difficulty was related to the **volume and heterogeneity of the data**. Processing large TSV files from IMDb and deeply nested JSON documents from Metacritic required careful memory management. In some cases, manual garbage collection and intermediate cleanup were necessary in Python to avoid memory issues during staging and transformation.
+
+The **Airflow execution environment** also introduced limitations. Airflow does not directly manage Docker Compose and does not have access to already running containers. As a result, Docker images had to be built and managed explicitly, image by image, through the Docker Operator. Managing environment variables (`.env` files) and volume sharing across operators required additional configuration and debugging.
+
+Finally, **development and testing cycles were relatively slow**. DAG testing in Airflow requires full pipeline execution, which made debugging and iteration time-consuming. This limited rapid experimentation, especially when changes affected multiple stages of the pipeline.
+
+These limitations reflect realistic constraints commonly encountered in data engineering projects involving heterogeneous data sources and complex orchestration tools.
+
+# 11. Future Improvements
+
+Several improvements can be considered to extend the project and address current limitations.
+
+A first area of improvement concerns **media mapping and data alignment**. More advanced matching techniques could be introduced to improve the accuracy of links between Metacritic and IMDb titles. This includes refining similarity measures, combining multiple signals (title, release year, contributors), and improving data cleaning strategies to reduce mismatches.
+
+The **genre modeling** could also be enhanced. Genres from Metacritic and IMDb could be grouped into higher-level categories and subgenres to provide a more structured and semantically meaningful representation. This would allow finer-grained similarity analysis and more expressive analytical queries.
+
+From a performance perspective, the current data processing relies mainly on single-core Pandas operations. Future versions could improve scalability by introducing **parallel or multi-core processing**, such as chunk-based loading, multiprocessing, or alternative frameworks better suited for large-scale data transformations.
+
+The analytical layer could be enriched with **natural language processing techniques**. Keyword extraction from media summaries and review texts would allow more semantic analysis of content. These keywords could then be used to improve similarity computation and recommendation quality.
+
+Building on this, a **vector database** could be introduced to persist embeddings generated from media metadata, genres, companies, and contributor roles. Technologies such as Milvus could be used to store and query embeddings efficiently, enabling vector-based similarity search alongside the existing relational and graph-based approaches.
+
+Additional enrichment could be achieved by integrating **external knowledge bases**, such as Wikidata. Using RDF-based data would allow the introduction of richer semantic relationships, such as franchises, universes, or historical links between media items.
+
+From a privacy standpoint, future work could include the implementation of **explicit anonymization mechanisms** for user-related data, ensuring stronger guarantees when handling review content.
+
+Finally, the **graph database model** could be extended by introducing higher-level nodes such as franchises, sagas, or thematic sections. These additions would improve graph traversal, support more advanced recommendation scenarios, and provide a clearer representation of relationships between media items.
+
+Together, these improvements would significantly enhance the scalability, expressiveness, and analytical power of the system.
 
 ## Institute logo
 
@@ -261,4 +538,3 @@ These bridge tables model many‑to‑many relationships and include weights to 
 ![Insalogo](./Documents/Images/logo-insa_0.png)
 
 </center>
-
