@@ -35,7 +35,9 @@ if __name__ == "__main__":
 
         LOG.info(f"Saved JSON → {filename}")
 
-    def save_movie_json(media: MediaInfoPages, output_folder=f"{DATA_FILE_DIRECTORY}/MOVIES"):
+    def save_movie_json(
+        media: MediaInfoPages, output_folder=f"{DATA_FILE_DIRECTORY}/MOVIES"
+    ):
         os.makedirs(output_folder, exist_ok=True)
 
         filename = f"{media.element_pagination_title}.json"
@@ -82,7 +84,6 @@ if __name__ == "__main__":
             json.dump(data, f, indent=4, ensure_ascii=False)
 
         LOG.info(f"Saved JSON → {filename}")
-
 
     scr_TV_SHOWS = MetacriticScrapper(
         MetacriticCategory.TV_SHOWS, user_agent={"User-agent": "Mozilla/5.0"}
