@@ -85,6 +85,21 @@ This command:
 - starts all services,
 - configures internal networking automatically.
 
+**ATTENTION: If an error occurs where a volume can't be built by right accèss errors, create these files by hand:**
+
+Data-Eng-Project_INSArama_5IF/DataWarehouse/data/
+- postgres
+- neo4j
+
+these two fodlers are needed.
+In this case composing down with `-v` will not destroy them, you will need to destroy them manually.
+
+**ATTENTION: If you already possess scrapped data, you can add it at:**
+Data-Eng-Project_INSArama_5IF/Airflow/data/metacritic/
+- GAMES/*.json
+- TV_SHOWS/*.json
+- MOVIES/*.json
+
 To stop the environment:
 ```bash
 docker compose down 
@@ -323,7 +338,6 @@ The ingestion phase implements two distinct mechanisms to collect data from exte
 
 IMDb data ingestion is performed using a curl-based downloading strategy. The IMDb Non-Commercial Datasets are publicly available as compressed TSV files and can be accessed through stable URLs, making them suitable for deterministic, file-based ingestion. A dedicated ingestion script downloads the required datasets
 
-
 ##### 5.1.2 Metacritic Data Ingestion – Web Scraping with BeautifulSoup
 
 Metacritic data is ingested using web scraping, as no official public API is available for bulk access. The scraping logic is implemented in Python using the BeautifulSoup library.
@@ -548,6 +562,30 @@ From a privacy standpoint, future work could include the implementation of **exp
 Finally, the **graph database model** could be extended by introducing higher-level nodes such as franchises, sagas, or thematic sections. These additions would improve graph traversal, support more advanced recommendation scenarios, and provide a clearer representation of relationships between media items.
 
 Together, these improvements would significantly enhance the scalability, expressiveness, and analytical power of the system.
+
+# 12. Evolution for incremental loading
+
+The batch load works for any amount of data jsons from metacritic relatively efficienly (150 medias in 3-10min depending on hardware). As such the only change to implement would be to update the scrapper to have a memory (a saved file configuration possibly or env variable) that indicates the previos batch' first scrapped element and to stop scrapping when it realises no new data remains to scrap. IMDB is curled from the latest version posted on their web so no updates needed on that regard.
+
+ATTENTION: currently curled and scrapped data isn't erased uppon persistance!
+
+## Disclaimer
+
+This project is provided **for educational and research purposes only**.
+
+The authors and contributors of this project **do not condone, support, or encourage** any form of illegal activity, including but not limited to:
+- Violations of applicable laws or regulations
+- Breaches of website terms of service
+- Unauthorized data access or misuse
+
+This project is **not intended for commercial use**. Any use of this software or its output for commercial purposes is strictly discouraged unless proper authorization has been obtained from the relevant parties.
+
+Users are solely responsible for ensuring that their use of this project complies with **all applicable local, national, and international laws**, as well as the terms and conditions of any websites or services accessed.
+
+The authors and contributors **assume no liability** for any misuse of this project or for any damages, legal consequences, or losses arising from its use.
+
+By using this project, you acknowledge that you understand and agree to this disclaimer.
+
 
 ## Institute logo
 
