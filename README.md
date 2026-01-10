@@ -134,7 +134,7 @@ ATTENTION: Grafana lazy loads data sources. as such when first connecting you ha
 
 0. Auth : insarama/insarama
 
-1. Connections >> Data Sources >> insm_postgres_DW >> (at the bottom) Click blue "Save & test" button to refresh conenctioin ? can u provide screenshots of ur pc so they can see better? just give them to me i can draw boxes and stuff like pointy arrows in clickbait youtube titles
+1. Connections >> Data Sources >> insm_postgres_DW >> (at the bottom) Click blue "Save & test" button to refresh conenctioin.
   
 ![Refresh Connection](./Documents/Images/refresh_con.png)
 
