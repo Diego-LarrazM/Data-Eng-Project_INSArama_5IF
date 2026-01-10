@@ -134,7 +134,7 @@ ATTENTION: Grafana lazy loads data sources. as such when first connecting you ha
 
 0. Auth : insarama/insarama
 
-1. Connections >> Data Sources >> insm_postgres_DW >> (at the bottom) Click blue "Save & test" button to refresh conenctioin.
+1. Connections >> Data Sources >> insm_postgres_DW >> (at the bottom) Click blue "Save & test" button to refresh connection.
   
 ![Refresh Connection](./Documents/Images/refresh_con.png)
 
@@ -169,11 +169,11 @@ ATTENTION: Grafana lazy loads data sources. as such when first connecting you ha
 
 (default values in Datawarehouse/.env)
 
-1. Select no authentification foor auth. type
+1. Select "no authentification" for auth. type
 
 ![Bolt connect](./Documents/Images/bolt_connect.png)
 
-You can then query as u want in Cypher.
+You may then query the graph as much as you want in Cypher using the input bar on the top of the page.
 
 ![Bolt query](./Documents/Images/bolt_query.png)
 
@@ -188,7 +188,7 @@ You can then query as u want in Cypher.
 | Grafana | http://localhost:3000        
 | Neo4j (Bolt)     | http://localhost:7474
 
-(Disclaimer) These are the default values in the environment; they can be changed in their respective .env files, except Airflow.
+(Disclaimer) These are the default values in the environment; they can be changed in their respective .env files, except Airflow, who's port is hardcoded.
 
 ---
 
@@ -405,32 +405,32 @@ The graph focuses mainly on Media entities and their attributes, including genre
 Mostly involves: 
 - normalizing nulls (`\N` to `None`)
 - removing anomalies: for example, titles that only contained one letter and didn't exist in the IMDB official web page. 
-Another example could be reviews without a rating or critic revieweurs who posted TWO reviews for the same media AND platform ("GamesRadar" is one of them).
+Another example could be reviews without a rating or critic reviewers who posted TWO reviews for the same media and platform ("GamesRadar" is one of them).
 
 ### 7.2 Data Transformation
 
 - Joining and merging rows: 
 
 Given the many-to-many relationships like with `DIM_MEDIA_INFO` to `GENRES`, ... it was necessary to remap correctly DISTINCT ENTITIES with their uuids to 
-their constrained entity. This was divided into two parts:
-  1. Obtaining distinct entities and for each saving a list the ids of their constrained entities they are associated with.
-  2. Defining their ids now that they are distinct.
-  3. Remapping for each distinct entity and for each of their constrained entities' id the id of the distinct entity: constrained_entity.foreing_key = distinct_entity.key, and saving the distinct entity as a row.
-  4. Create a bridge table with both ids and a `weight = 1/len(constrained entity id list)`
+their constrained entity. This was divided into four parts:
+  1. Obtaining distinct entities and for each saving to a list the ids of their constrained entities they are associated with (example: saving genre "drama" along a list of all the media ids tagged with this genre).
+  2. Defining their ids now that they are distinct (the ids of `GENRES` "rows", `ROLES` and `COMPANIES`).
+  3. Remapping for each distinct entity and for each of their constrained entities' id the id of the distinct entity: constrained_entity.foreing_keys.append(distinct_entity.key), and saving the distinct entity as a row.
+  4. Create a bridge table with both ids and a `weight = 1/len(constrained entity's foreing_keys list)`
 
-Once both a list of rows for the distinct enities and the bridge table is obtained, we then load it to the MongoDB transient server.
+Once both a list of rows for the distinct enities and the bridge table is obtained, we then load them to the MongoDB transient server.
 
-Constrained entity rows should contain their mapped foreign keys so that they can finally be loaded.
+Constrained entity rows should be mapped correctly in the bridge tables, and thus could finally be loaded.
 
-- To obtain `DIM_SECTION.group` columns like section_group or `DIM_MEDIA_INFO.franchise` we perform the following operation:
+- To obtain "group columns" like `DIM_SECTION.section_group` or `DIM_MEDIA_INFO.franchise` we perform the following operations:
 
-We want to obtain a label that is a contiguous subset, forcefully containing the first token (each word is a token).
+We want to obtain a label that is a contiguous common subset of a cluster of similar strings, forcefully containing the first token of each string. A token is a cleaned and transformed word in a string.
 
-Example: `Super Mario Galaxy, Super Mario 3D World, Super Mario Galaxy 2` -> `franchise_label = Super Mario` <-- Must contain at least the first token "Super" otherwise not a franchise => label = null.
+Example: `Super Mario Galaxy, Super Mario 3D World, Super Mario Galaxy 2` -> `franchise_label = super mario` <-- Must contain at least the first token "super" otherwise not a franchise => label = null.
 
-  1. Tokenize strings: to lower case, punctuations, clean double white spaces, split by whitespaces into a list then a set, remove stop words ...
-  2. Then we cluster by Jaccard similarity, adding edges to a graph if `similarity >= threshold` and finding intraconnected nodes
-  3. We extract the most common contiguous from the start subset of tokens to each entity in the cluster
+  1. Tokenize strings: to lower case, punctuations, clean double white spaces, split by whitespaces into a set, remove stop words ...
+  2. Then we cluster by Jaccard similarity, adding edges to a graph if `similarity >= threshold` and finding intraconnected nodes to form clusters of similar strings (titles, sections, ...).
+  3. We extract the most common contiguous string subset from the start of each token list to each entity in the cluster.
   4. Finally, we remap the label as a new column to the cluster entities by their ids.
 
 ### 7.3 Data Enrichment (IMDB Roles)
@@ -438,17 +438,18 @@ Example: `Super Mario Galaxy, Super Mario 3D World, Super Mario Galaxy 2` -> `fr
 For `ROLES` specifically, it was more difficult given it required joining from two VERY LARGE (+100M rows) relational-like saved sources.
 
 Furthermore, titles didn't always match exactly, différentiating by punctuation, case, and even form or elements, one sometimes being more or less a subset of the other.
+No month or day for the release date was propvided either, and to make it worse, we couldn't even match correctly by year or runtime duration given these differred too by at least +-1 year or +-2 minutes.
 
 1. **Title matching of `title.basics.tsv.gz` (15M rows) and our `DIM_MEDIA_INFO` rows**:
 
 Given its size, we perform three filters:
 
-- General cleaning and media type of `title.basics.tsv.gz`: we only obtain series and movies, not episodes, we don't take nulls, abnormalities, ...
+- General cleaning and media type of `title.basics.tsv.gz`: we only obtain series and movies, not episodes, we don't take nulls, anomalies, ...
   
-- Given a set of release years of `DIM_MEDIA_INFO` and runtime duration, we merge by year and runtime, thus reducing our candidates even further.
-It is important to mention that IMDB and `DIM_MEDIA_INFO` years vary with an interval of +-1year or +-2min for runtime, thus we use an absolute difference <= epsilon to filter and not equality.
+- Given a set of present release years in `DIM_MEDIA_INFO` and runtime duration, we merge by year and runtime, thus reducing our candidates even further.
+It is important to mention that IMDB and `DIM_MEDIA_INFO` years vary with an interval of +-1year or +-2min for runtime, thus we use an absolute difference <= epsilon to filter.
 
-- Finally, a Jaccard similarity on cleaned and tokenized titles and iterative matching of best options by a "King of the Hill" approach (if a better match is found, then replace).
+- Finally, a Jaccard similarity on cleaned and tokenized titles and iterative matching of best options by a "King of the Hill" approach is used ot match titles (King of the Hill: if a better match is found, replace that match).
 
 With this, we finally obtain a mapping from IMDB title ids to `DIM_MEDIA_INFO` ids:  `tconst -> media_info_id`.
 
@@ -465,8 +466,7 @@ We end up with a list of distinct `ROLES` rows, but we are still missing `person
 - Filter by actually needed `nconst` values from a previously built set.
 - A simple inner join on `nconst`
 
-We end up remapping and building the bridge table to obtain `ROLES` rows and set constraints. We also load it to MongoDB
-
+We end up remapping and building the bridge table to obtain `ROLES` rows and set constraints, finally loading to MongoDB.
 
 ### 7.4 Persistence and Durability
 
@@ -475,7 +475,10 @@ we can just read these collections and persist in batches (due to memory issues)
 
 ### 7.5 Graphs for Neo4J
 
-Easily obtained from prior mappings.
+Easily obtained from prior mappings. Loaded to MongoDB as two separate collections for the entitites and the constraints.
+The loader establishes a connection and loads in batches: 
+- first the entities, updating their attributes if the entity already exists to solve duplication
+- then the constraints, searching for the elements involved by their distinctive attribute "_GRAPH_NODE_ID".
 
 ---
 
@@ -488,7 +491,7 @@ the most valued (rated on average) Genres per Platform, and so on ...
 
 ### 8.2 Graph-Based Recommendation System (Neo4j)
 
-Permits graph querying on the UI to match media nodes. 
+Permits graph querying on the UI to match media nodes, etc...
 
 # 9. Additional Components
 
@@ -497,16 +500,16 @@ Permits graph querying on the UI to match media nodes.
 In addition to the core technologies required by the course, several external tools were used to address specific technical needs in the pipeline.
 
 - **Docker Operator (Apache Airflow)**  
-  Used to execute ingestion and processing tasks inside isolated Docker containers. This ensures reproducibility, avoids dependency conflicts, and allows each task to run in a controlled environment.
+  Used to execute ingestion and processing tasks inside isolated Docker containers. This ensures reproducibility, avoids dependency conflicts, and allows each task to run in a controlled and efficient environment.
 
 - **BeautifulSoup**  
   Used for web scraping to extract media metadata and reviews from Metacritic web pages. It enables structured parsing of HTML content and supports handling different page layouts for movies, TV series, and video games.
 
 - **MongoDB**  
-  Used as a transient database during the ingestion phase to store raw and semi-structured data. Its flexible schema makes it suitable for holding heterogeneous JSON documents before cleaning and transformation.
+  Used as a transient database during the ingestion phase to store raw and semi-structured data. Its flexible schema makes it suitable for holding heterogeneous JSON documents before cleaning and transformation, and ensures separation.
 
 - **Grafana**  
-  Used to visualize analytical results produced from SQL queries on the production database. It provides interactive dashboards for exploring ratings, genres, and cross-media comparisons.
+  Used to visualize analytical results produced from SQL queries on the production database. It provides pre-built interactive dashboards for exploring ratings, genres, and cross-media comparisons.
 
 - **Neo4j**  
   Used as a graph database to model relationships between media items, contributors, genres, and attributes. It enables graph-based similarity queries and supports the cross-media recommendation engine.
@@ -533,7 +536,7 @@ Several technical and conceptual difficulties were encountered during the develo
 
 One of the main challenges was **data alignment between Metacritic and IMDb**. The two sources do not share common identifiers, which made direct mapping between titles impossible. Differences in naming conventions, release years, and media formats required the use of approximate matching techniques, such as string similarity measures (e.g. Jaccard similarity), to link records across datasets. This process was error-prone and required multiple iterations to achieve acceptable results.
 
-Another difficulty was related to the **volume and heterogeneity of the data**. Processing large TSV files from IMDb and deeply nested JSON documents from Metacritic required careful memory management. In some cases, manual garbage collection and intermediate cleanup were necessary in Python to avoid memory issues during staging and transformation.
+Another difficulty was related to the **volume and heterogeneity of the data**. Processing large TSV files from IMDb and deeply nested JSON documents from Metacritic required careful memory management. In some cases, manual garbage collection and intermediate cleanup were necessary in Python to avoid memory issues during staging and transformation. It also influenced the current Ingestion-Trasnformation structure, for pandas permits reading zipped files, it was much more efficient in memory and speed to ingest all to a shared volume and transform directly on said volume, reducing disk space from 15GB to 1 or 2GB, and even further uppon joinning and filtering IMDB titles, before loading to MongoDB.
 
 The **Airflow execution environment** also introduced limitations. Airflow does not directly manage Docker Compose and does not have access to already running containers. As a result, Docker images had to be built and managed explicitly, image by image, through the Docker Operator. Managing environment variables (`.env` files) and volume sharing across operators required additional configuration and debugging.
 
@@ -585,7 +588,6 @@ Users are solely responsible for ensuring that their use of this project complie
 The authors and contributors **assume no liability** for any misuse of this project or for any damages, legal consequences, or losses arising from its use.
 
 By using this project, you acknowledge that you understand and agree to this disclaimer.
-
 
 ## Institute logo
 
